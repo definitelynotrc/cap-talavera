@@ -367,7 +367,7 @@ if (!isset($_SESSION['random_instructor_ids'])) {
                         $instructorIds[] = $row['class_teacher_id'];
                     }
 
-                    // If there are instructor IDs, fetch their details
+
                     if (!empty($instructorIds)) {
                         // Prepare the query to fetch instructors based on the instructor IDs from to_evaluate
                         $placeholders = implode(',', array_fill(0, count($instructorIds), '?'));
@@ -389,7 +389,7 @@ if (!isset($_SESSION['random_instructor_ids'])) {
     WHERE u.role = 'Instructor' 
       AND ct.class_teacher_id IN (SELECT class_teacher_id FROM to_evaluate WHERE user_id = ?)
 ");
-                        $stmt->bind_param('ii', $user_id, $user_id); // Pass the current user ID as both parameters
+                        $stmt->bind_param('ii', $user_id, $user_id);
                         $stmt->execute();
                         $result = $stmt->get_result();
 
