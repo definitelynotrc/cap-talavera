@@ -64,6 +64,7 @@ try {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -73,33 +74,40 @@ try {
             font-family: Arial, sans-serif;
             margin: 20px;
         }
+
         form {
             max-width: 500px;
             margin: auto;
         }
+
         label {
             display: block;
             margin: 10px 0 5px;
             font-weight: bold;
         }
-        select, button {
+
+        select,
+        button {
             width: 100%;
             padding: 10px;
             margin-bottom: 15px;
             border: 1px solid #ccc;
             border-radius: 5px;
         }
+
         button {
             background-color: #007BFF;
             color: white;
             border: none;
             cursor: pointer;
         }
+
         button:hover {
             background-color: #0056b3;
         }
     </style>
 </head>
+
 <body>
     <h1>Assign Advisory Class</h1>
 
@@ -148,4 +156,5 @@ try {
         <button type="submit">Assign Advisory Class</button>
     </form>
 </body>
+
 </html>

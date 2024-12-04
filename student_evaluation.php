@@ -13,52 +13,58 @@ if ($conn->connect_error) {
 }
 
 $user_id = $_SESSION['user_id'];
-
-$getClassTeacherQuery = "SELECT class_teacher_id FROM class_teacher WHERE user_id = ?";
-$stmt = $conn->prepare($getClassTeacherQuery);
-$stmt->bind_param('i', $user_id);
+// Fetch all `sub_id` values assigned to the student from the class_teacher table
+$getStudentSubjectsQuery = "
+    SELECT DISTINCT sub_id 
+    FROM class_teacher 
+    WHERE user_id = ?
+";
+$stmt = $conn->prepare($getStudentSubjectsQuery);
+$stmt->bind_param('i', $user_id); // $user_id is the student's ID
 $stmt->execute();
 $result = $stmt->get_result();
-$classTeacher = $result->fetch_assoc();
+$studentSubIdsArray = $result->fetch_all(MYSQLI_ASSOC);
 
-$userDepQuery = "SELECT dep_id FROM user_dep WHERE user_id = ?";
-$stmt = $conn->prepare($userDepQuery);
-$stmt->bind_param('i', $user_id);
-$stmt->execute();
-$result = $stmt->get_result();
+// Extract `sub_id` values into a flat array
+$studentSubIds = array_column($studentSubIdsArray, 'sub_id');
+// Check if $studentSubIds is not empty
+if (!empty($studentSubIds)) {
+    // Create placeholders for the sub_ids
+    $placeholders = implode(',', array_fill(0, count($studentSubIds), '?')); // "?, ?, ?, ?, ?, ?"
 
-if ($row = $result->fetch_assoc()) {
-    $userDepId = $row['dep_id'];
+    $instructorQuery = "
+        SELECT 
+            u.user_id, 
+            u.fName, 
+            u.lName, 
+            ct.teacher_type, 
+            ct.class_teacher_id, 
+            s.subjects 
+        FROM users u
+        JOIN class_teacher ct ON u.user_id = ct.user_id
+        JOIN subject s ON ct.sub_id = s.sub_id
+        WHERE ct.sub_id IN ($placeholders) 
+          AND u.role = 'Instructor';
+    ";
+
+    $stmt = $conn->prepare($instructorQuery);
+
+    if ($stmt) {
+        // Bind the $studentSubIds dynamically
+        $types = str_repeat('i', count($studentSubIds)); // "iiiiii" for 6 integers
+        $stmt->bind_param($types, ...$studentSubIds);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $instructors = $result->fetch_all(MYSQLI_ASSOC);
+
+
+    } else {
+        die("Error preparing query: " . $conn->error);
+    }
 } else {
-    // Handle the case where no department ID is found
-    echo ("No department found for the user.");
+    $instructors = [];
+    echo "No subjects found for this student.";
 }
-
-
-$instructorQuery = " SELECT 
-        u.user_id, 
-        u.fName, 
-        u.lName, 
-        ct.teacher_type, 
-        ct.class_teacher_id, 
-        s.subjects 
-    FROM users u
-    JOIN class_teacher ct ON u.user_id = ct.user_id
-    JOIN subject s ON ct.sub_id = s.sub_id
-    JOIN user_dep ud ON u.user_id = ud.user_id
-    WHERE ud.dep_id = ? AND u.role = 'Instructor'";
-$stmt = $conn->prepare($instructorQuery);
-$stmt->bind_param('i', $userDepId);
-$stmt->execute();
-$result = $stmt->get_result();
-$instructors = $result->fetch_all(MYSQLI_ASSOC);
-
-
-
-
-
-
-
 
 ?>
 <!DOCTYPE html>
@@ -279,7 +285,7 @@ WHERE ct.class_teacher_id = ?
                     <h4>You are now Evaluating <span
                             class="activeInstructor"><?php echo htmlspecialchars($instructorName); ?></span></h4>
 
-                    <form action="process_instructor_evaluation.php" method="POST">
+                    <form action="process_instructor_evaluation_student.php" method="POST">
                         <input type="hidden" name="class_teacher_id"
                             value="<?php echo htmlspecialchars($instructorId); ?>">
                         <input type="hidden" name="user_id" value="<?php echo htmlspecialchars($user_id); ?>">
@@ -348,7 +354,61 @@ WHERE ct.class_teacher_id = ?
                     </form>
                 </div>
 
+                <div class="instructorContainer">
+                    <h1>Instructors</h1>
 
+                    <?php
+                    if (!empty($instructors)) {
+                        foreach ($instructors as $row) {
+                            $fullName = htmlspecialchars($row['fName']) . ' ' . htmlspecialchars($row['lName']);
+                            $teacherType = htmlspecialchars($row['teacher_type']);
+                            $subjectName = htmlspecialchars($row['subjects']);
+
+
+                            $evaluationQuery = "
+            SELECT eval_id 
+            FROM evaluation 
+            WHERE class_teacher_id = ? AND user_id = ?
+        ";
+                            $evalStmt = $conn->prepare($evaluationQuery);
+
+                            if (!$evalStmt) {
+                                die("Query preparation failed: " . $conn->error);
+                            }
+
+                            $evalStmt->bind_param('ii', $row['class_teacher_id'], $user_id);
+                            $evalStmt->execute();
+                            $evalResult = $evalStmt->get_result();
+
+                            $evaluated = $evalResult->num_rows > 0 ? 'true' : 'false';
+                            $disabledClass = ($evaluated === 'true') ? 'disabled' : '';
+
+                            ?>
+                            <a href="student_evaluation.php?class_teacher_id=<?php echo $row['class_teacher_id']; ?>"
+                                class="instructor <?php echo $disabledClass; ?>" data-evaluated="<?php echo $evaluated; ?>"
+                                data-instructor-id="<?php echo $row['class_teacher_id']; ?>">
+                                <div class="instructorDetails">
+                                    <div>
+                                        <h3><?php echo $fullName; ?></h3>
+                                        <p><?php echo htmlspecialchars($row['teacher_type']); ?></p>
+                                        <span><?php echo $subjectName; ?></span>
+                                    </div>
+                                </div>
+                            </a>
+                            <?php
+                        }
+                    } else {
+                        echo '<p>No instructors available for evaluation.</p>';
+                    }
+                    ?>
+
+
+
+
+
+
+
+                </div>
             </div>
 
             <script src="main.js"></script>
