@@ -286,10 +286,12 @@ WHERE ct.class_teacher_id = ?
 
 
 
+
+
                         <table class="table">
                             <thead>
                                 <tr>
-                                    <th class="th">Item</th>
+                                    <th>Question</th>
                                     <th>5</th>
                                     <th>4</th>
                                     <th>3</th>
@@ -298,53 +300,40 @@ WHERE ct.class_teacher_id = ?
                                 </tr>
                             </thead>
                             <tbody>
-
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th>Question</th>
-                                            <th>5</th>
-                                            <th>4</th>
-                                            <th>3</th>
-                                            <th>2</th>
-                                            <th>1</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php
+                                <?php
 
 
-                                        // Fetch active questions
-                                        $query = "SELECT ques_id, questions FROM question WHERE status = 'active' ORDER BY ques_id ASC";
-                                        $result = $conn->query($query);
+                                // Fetch active questions
+                                $query = "SELECT ques_id, questions FROM question WHERE status = 'active' ORDER BY ques_id ASC";
+                                $result = $conn->query($query);
 
-                                        if ($result->num_rows > 0) {
-                                            while ($row = $result->fetch_assoc()) {
-                                                echo '<tr>';
-                                                echo '<td>' . htmlspecialchars($row['ques_id'] . '. ' . $row['questions']) . '</td>';
+                                if ($result->num_rows > 0) {
+                                    while ($row = $result->fetch_assoc()) {
+                                        echo '<tr>';
+                                        echo '<td>' . htmlspecialchars($row['ques_id'] . '. ' . $row['questions']) . '</td>';
 
-                                                // Generate radio buttons for each question
-                                                for ($i = 5; $i >= 1; $i--) {
-                                                    echo '<td><input type="radio" name="q' . $row['ques_id'] . '" value="' . $i . '" required></td>';
-                                                }
-                                                echo '</tr>';
-                                            }
-                                        } else {
-                                            echo '<tr><td colspan="6">No questions available.</td></tr>';
+                                        // Generate radio buttons for each question
+                                        for ($i = 5; $i >= 1; $i--) {
+                                            echo '<td><input type="radio" name="q' . $row['ques_id'] . '" value="' . $i . '" required></td>';
                                         }
+                                        echo '</tr>';
+                                    }
+                                } else {
+                                    echo '<tr><td colspan="6">No questions available.</td></tr>';
+                                }
 
-                                        ?>
-                                    </tbody>
-                                </table>
+                                ?>
+                            </tbody>
+                        </table>
 
 
 
-                                <div class="remarksContainer">
-                                    <label for=""><strong>Remarks </strong></label>
-                                    <textarea name="remarks" id="remarks" cols="30" rows="10"
-                                        placeholder="Enter your remarks"></textarea>
-                                    <button type="submit">Submit</button>
-                                </div>
+                        <div class="remarksContainer">
+                            <label for=""><strong>Remarks </strong></label>
+                            <textarea name="remarks" id="remarks" cols="30" rows="10"
+                                placeholder="Enter your remarks"></textarea>
+                            <button type="submit">Submit</button>
+                        </div>
                     </form>
                 </div>
 
