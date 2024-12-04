@@ -84,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Close connection
     $conn->close();
 
-    // Redirect or display success message
+    header("Location: instructor_evaluation.php");
     echo "Evaluation submitted successfully!";
 }
 ?>

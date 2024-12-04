@@ -21,50 +21,42 @@ $stmt->execute();
 $result = $stmt->get_result();
 $classTeacher = $result->fetch_assoc();
 
-$ctId = $classTeacher['class_teacher_id'];
+$userDepQuery = "SELECT dep_id FROM user_dep WHERE user_id = ?";
+$stmt = $conn->prepare($userDepQuery);
+$stmt->bind_param('i', $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
 
-
-if (!isset($_SESSION['random_instructor_ids'])) {
-
-    $result = mysqli_query($conn, "
-        SELECT DISTINCT ct.class_teacher_id 
-        FROM class_teacher ct
-        LEFT JOIN evaluation e ON ct.class_teacher_id = e.class_teacher_id
-        WHERE e.eval_id IS NULL 
-          AND ct.class_teacher_id != $ctId 
-        ORDER BY RAND() LIMIT 3
-    ");
-
-    $randomInstructorIds = [];
-    if (mysqli_num_rows($result) > 0) {
-        while ($row = mysqli_fetch_assoc($result)) {
-            $randomInstructorIds[] = $row['class_teacher_id'];
-
-            $stmt = $conn->prepare("SELECT COUNT(*) AS count FROM to_evaluate WHERE user_id = ?");
-            $stmt->bind_param('i', $user_id);
-            $stmt->execute();
-            $countResult = $stmt->get_result();
-            $countRow = $countResult->fetch_assoc();
-
-            if ($countRow['count'] < 3) { // Insert only if there are less than 3 rows
-                $insertStmt = $conn->prepare("INSERT INTO to_evaluate (class_teacher_id, user_id) VALUES (?, ?)");
-                $insertStmt->bind_param('ii', $row['class_teacher_id'], $user_id);
-                $insertStmt->execute();
-                $insertStmt->close();
-            }
-
-            $stmt->close();
-        }
-
-        // Store the random instructor IDs in the session for future use
-        $_SESSION['random_instructor_ids'] = $randomInstructorIds;
-    } else {
-        echo 'No instructors found';
-    }
+if ($row = $result->fetch_assoc()) {
+    $userDepId = $row['dep_id'];
 } else {
-    // Retrieve the random instructor IDs from session
-    $randomInstructorIds = $_SESSION['random_instructor_ids'];
+    // Handle the case where no department ID is found
+    echo ("No department found for the user.");
 }
+
+
+$instructorQuery = " SELECT 
+        u.user_id, 
+        u.fName, 
+        u.lName, 
+        ct.teacher_type, 
+        ct.class_teacher_id, 
+        s.subjects 
+    FROM users u
+    JOIN class_teacher ct ON u.user_id = ct.user_id
+    JOIN subject s ON ct.sub_id = s.sub_id
+    JOIN user_dep ud ON u.user_id = ud.user_id
+    WHERE ud.dep_id = ? AND u.role = 'Instructor'";
+$stmt = $conn->prepare($instructorQuery);
+$stmt->bind_param('i', $userDepId);
+$stmt->execute();
+$result = $stmt->get_result();
+$instructors = $result->fetch_all(MYSQLI_ASSOC);
+
+
+
+
+
 
 
 
@@ -246,7 +238,11 @@ if (!isset($_SESSION['random_instructor_ids'])) {
 
             if ($instructorId) {
 
-                $stmt = mysqli_prepare($conn, "SELECT fName, lName FROM users WHERE user_id = ?");
+                $stmt = mysqli_prepare($conn, "SELECT u.fName, u.lName 
+FROM users u
+JOIN class_teacher ct ON u.user_id = ct.user_id
+WHERE ct.class_teacher_id = ?
+");
                 mysqli_stmt_bind_param($stmt, 'i', $instructorId);
                 mysqli_stmt_execute($stmt);
                 $result = mysqli_stmt_get_result($stmt);
@@ -356,159 +352,87 @@ if (!isset($_SESSION['random_instructor_ids'])) {
                     <h1>Instructors</h1>
 
                     <?php
-                    // Fetch the random instructor IDs from the to_evaluate table for the current user
-                    $stmt = $conn->prepare("SELECT DISTINCT class_teacher_id FROM to_evaluate WHERE user_id = ?");
-                    $stmt->bind_param('i', $user_id); // Assuming you have the $user_id variable available
-                    $stmt->execute();
-                    $result = $stmt->get_result();
-
-                    $instructorIds = [];
-                    while ($row = mysqli_fetch_assoc($result)) {
-                        $instructorIds[] = $row['class_teacher_id'];
-                    }
+                    if (!empty($instructors)) {
+                        foreach ($instructors as $row) {
+                            $fullName = htmlspecialchars($row['fName']) . ' ' . htmlspecialchars($row['lName']);
+                            $teacherType = htmlspecialchars($row['teacher_type']);
+                            $subjectName = htmlspecialchars($row['subjects']);
 
 
-                    if (!empty($instructorIds)) {
-                        // Prepare the query to fetch instructors based on the instructor IDs from to_evaluate
-                        $placeholders = implode(',', array_fill(0, count($instructorIds), '?'));
-                        $stmt = $conn->prepare("
-    SELECT 
-        u.user_id, 
-        u.fName, 
-        u.mName, 
-        u.lName, 
-        u.role, 
-        e.eval_id, 
-        s.subjects,
-        ct.teacher_type,
-        ct.class_teacher_id
-    FROM users u
-    LEFT JOIN class_teacher ct ON u.user_id = ct.user_id
-    LEFT JOIN subject s ON ct.sub_id = s.sub_id
-    LEFT JOIN evaluation e ON ct.class_teacher_id = e.class_teacher_id AND e.user_id = ? -- Check if current user evaluated
-    WHERE u.role = 'Instructor' 
-      AND ct.class_teacher_id IN (SELECT class_teacher_id FROM to_evaluate WHERE user_id = ?)
-");
-                        $stmt->bind_param('ii', $user_id, $user_id);
-                        $stmt->execute();
-                        $result = $stmt->get_result();
+                            $evaluationQuery = "
+            SELECT eval_id 
+            FROM evaluation 
+            WHERE class_teacher_id = ? AND user_id = ?
+        ";
+                            $evalStmt = $conn->prepare($evaluationQuery);
 
-                        // Fetch the data and display it
-                        if ($result->num_rows > 0) {
-                            while ($row = $result->fetch_assoc()) {
-                                $fullName = htmlspecialchars($row['fName']) . ' ' . htmlspecialchars($row['mName']) . ' ' . htmlspecialchars($row['lName']);
-                                $evaluated = $row['eval_id'] ? 'true' : 'false';
-                                $subjectName = htmlspecialchars($row['subjects']);
-
-
-                                $disabledClass = ($evaluated === 'true') ? 'disabled' : '';
-
-                                ?>
-                                <a href="instructor_evaluation.php?class_teacher_id=<?php echo $row['class_teacher_id']; ?>"
-                                    class="instructor <?php echo $disabledClass; ?>" data-evaluated="<?php echo $evaluated; ?>"
-                                    data-instructor-id="<?php echo $row['class_teacher_id']; ?>">
-                                    <div class="instructorDetails">
-                                        <div>
-                                            <h3><?php echo $fullName; ?></h3>
-                                            <p><?php echo htmlspecialchars($row['teacher_type']); ?></p>
-                                            <span><?php echo $subjectName; ?></span>
-                                        </div>
-                                    </div>
-                                </a>
-                                <?php
+                            if (!$evalStmt) {
+                                die("Query preparation failed: " . $conn->error);
                             }
-                        } else {
-                            echo '<p>No instructors available for evaluation.</p>';
-                        }
 
-                    } else {
-                        echo 'No instructors found in to_evaluate table.';
-                    }
-                    ?>
-                    <?php
-                    $stmt = $conn->prepare("
-    SELECT 
-        u.user_id,
-        u.fName, 
-        u.lName, 
-        s.subjects, 
-        ct.teacher_type 
-    FROM users u
-    LEFT JOIN class_teacher ct ON u.user_id = ct.user_id
-    LEFT JOIN subject s ON ct.sub_id = s.sub_id
-    WHERE u.user_id = ?
-");
-                    $stmt->bind_param('i', $user_id); // Assuming $user_id is the logged-in user's ID
-                    $stmt->execute();
-                    $result = $stmt->get_result();
+                            $evalStmt->bind_param('ii', $row['class_teacher_id'], $user_id);
+                            $evalStmt->execute();
+                            $evalResult = $evalStmt->get_result();
 
-                    if ($result->num_rows > 0) {
-                        // Fetch the data
-                        $row = $result->fetch_assoc();
-                        $fullName = htmlspecialchars($row['fName']) . ' ' . htmlspecialchars($row['lName']);
-                        $subjectName = htmlspecialchars($row['subjects']);
-                        $teacherType = htmlspecialchars($row['teacher_type']);
+                            $evaluated = $evalResult->num_rows > 0 ? 'true' : 'false';
+                            $disabledClass = ($evaluated === 'true') ? 'disabled' : '';
 
-
-                        $evaluated = 'false';
-
-                        ?>
-                        <a href="instructor_evaluation.php?class_teacher_id=<?php echo $row['user_id']; ?>"
-                            class="instructor <?php echo ($evaluated === 'true') ? 'disabled' : ''; ?>"
-                            data-evaluated="<?php echo $evaluated; ?>" data-instructor-id="<?php echo $row['user_id']; ?>">
-                            <div class="instructorDetails">
-                                <div>
-                                    <h3><?php echo $fullName; ?></h3>
-                                    <p><?php echo $teacherType; ?></p>
-                                    <span><?php echo $subjectName; ?></span>
+                            ?>
+                            <a href="instructor_evaluation.php?class_teacher_id=<?php echo $row['class_teacher_id']; ?>"
+                                class="instructor <?php echo $disabledClass; ?>" data-evaluated="<?php echo $evaluated; ?>"
+                                data-instructor-id="<?php echo $row['class_teacher_id']; ?>">
+                                <div class="instructorDetails">
+                                    <div>
+                                        <h3><?php echo $fullName; ?></h3>
+                                        <p><?php echo htmlspecialchars($row['teacher_type']); ?></p>
+                                        <span><?php echo $subjectName; ?></span>
+                                    </div>
                                 </div>
-                            </div>
-                        </a>
-                        <?php
+                            </a>
+                            <?php
+                        }
                     } else {
-                        echo "No data found for this user.";
+                        echo '<p>No instructors available for evaluation.</p>';
                     }
                     ?>
+
+
+
+
+
 
 
                 </div>
-
-
-
-
-
-
             </div>
-        </div>
 
-        <script src="main.js"></script>
-        <script src="https://unpkg.com/ionicons@4.5.10-0/dist/ionicons.js"></script>
+            <script src="main.js"></script>
+            <script src="https://unpkg.com/ionicons@4.5.10-0/dist/ionicons.js"></script>
 
 
-        <script>document.addEventListener("DOMContentLoaded", function () {
-                const instructors = document.querySelectorAll('.instructor');
-                const activeInstructorId = localStorage.getItem('activeInstructorId');
+            <script>document.addEventListener("DOMContentLoaded", function () {
+                    const instructors = document.querySelectorAll('.instructor');
+                    const activeInstructorId = localStorage.getItem('activeInstructorId');
 
-                if (activeInstructorId) {
-                    const activeInstructor = document.querySelector(`.instructor[data-instructor-id='${activeInstructorId}']`);
-                    if (activeInstructor) {
-                        activeInstructor.classList.add('active');
-                    }
-                }
-
-                instructors.forEach(instructor => {
-                    instructor.addEventListener('click', function () {
-                        if (!instructor.classList.contains('disabled')) {
-                            instructors.forEach(item => item.classList.remove('active'));
-                            instructor.classList.add('active');
-                            const instructorId = instructor.getAttribute('data-instructor-id');
-                            localStorage.setItem('activeInstructorId', instructorId);
+                    if (activeInstructorId) {
+                        const activeInstructor = document.querySelector(`.instructor[data-instructor-id='${activeInstructorId}']`);
+                        if (activeInstructor) {
+                            activeInstructor.classList.add('active');
                         }
+                    }
+
+                    instructors.forEach(instructor => {
+                        instructor.addEventListener('click', function () {
+                            if (!instructor.classList.contains('disabled')) {
+                                instructors.forEach(item => item.classList.remove('active'));
+                                instructor.classList.add('active');
+                                const instructorId = instructor.getAttribute('data-instructor-id');
+                                localStorage.setItem('activeInstructorId', instructorId);
+                            }
+                        });
                     });
                 });
-            });
 
-        </script>
+            </script>
 </body>
 
 </html>
