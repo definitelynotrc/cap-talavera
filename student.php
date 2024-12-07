@@ -1,5 +1,10 @@
 <?php
-// Database connection details
+session_start();
+$userid = $_SESSION['user_id'];
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit;
+}
 $servername = "localhost";
 $username = "root";
 $password = "";
@@ -170,6 +175,8 @@ if (isset($_POST['submit']) && isset($_FILES['csvFile'])) {
     }
 }
 // Handle Edit request (excluding password)
+
+
 if (isset($_POST['edit'])) {
     $user_id = $_POST['user_id'];
     $firstname = $_POST['fname'];
@@ -187,6 +194,17 @@ if (isset($_POST['edit'])) {
     $gender = $_POST['gender'];
     $email = $_POST['email'];
     $role = $_POST['role'];
+
+    // Get the current email before update for comparison
+    $stmt = $conn->prepare("SELECT email FROM users WHERE user_id = ?");
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $stmt->bind_result($currentEmail);
+    $stmt->fetch();
+    $stmt->close();
+
+    // Generate a temporary password
+    $tempPassword = bin2hex(random_bytes(4)); // Generates an 8-character random password
 
     // Update the user in the database with all fields
     $stmt = $conn->prepare("
@@ -219,13 +237,19 @@ if (isset($_POST['edit'])) {
 
     // Execute and check for success
     if ($stmt->execute()) {
-        echo "<script>alert('User updated successfully!');</script>";
+
+        $_SESSION['success_message'] = "User updated successfully.";
+        if ($currentEmail != $email) {
+            // Send email if the email is changed
+            sendEmail($email, "{$firstname} {$lastname}", $tempPassword);
+        }
     } else {
-        echo "Error: " . $stmt->error;
+        $_SESSION['error_message'] = "Error: " . $stmt->error;
     }
 
     $stmt->close();
 }
+
 
 
 // Handle Archive request

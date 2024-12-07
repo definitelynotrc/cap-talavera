@@ -20,6 +20,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         die('User ID or Class Teacher ID is missing.');
     }
 
+    // Generate a unique transaction code (combining timestamp and random string)
+    $transaction_code = strtoupper(bin2hex(random_bytes(4))) . '-' . time();
+
+    // Debugging: Output transaction code to check if it's being generated
+    echo "Transaction Code: $transaction_code<br>";
+
     // Calculate rate_result based on the ratings
     $totalRating = 0;
     $totalQuestions = 0;
@@ -44,11 +50,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $rate_result = ($totalQuestions > 0) ? ($totalRating / $totalQuestions) : 0;
 
     // Insert into evaluation table
-    $stmt = $conn->prepare("INSERT INTO evaluation (remarks, rate_result, user_id, class_teacher_id, date_created) VALUES (?, ?, ?, ?, NOW())");
+    $stmt = $conn->prepare("INSERT INTO evaluation (transaction_code, remarks, rate_result, user_id, class_teacher_id, date_created) VALUES (?, ?, ?, ?, ?, NOW())");
     if ($stmt === false) {
         die('Error preparing query: ' . $conn->error);
     }
-    $stmt->bind_param('siii', $remarks, $rate_result, $user_id, $class_teacher_id);
+    $stmt->bind_param('ssiii', $transaction_code, $remarks, $rate_result, $user_id, $class_teacher_id);
 
     if (!$stmt->execute()) {
         die('Error executing query: ' . $stmt->error);

@@ -1,7 +1,10 @@
 <?php
 session_start();
-
-// Database connection
+$user_id = $_SESSION['user_id'];
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit;
+}
 $servername = "localhost";
 $username = "root";
 $password = "";
@@ -12,7 +15,7 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-$user_id = $_SESSION['user_id'];
+
 
 $getClassTeacherQuery = "SELECT class_teacher_id FROM class_teacher WHERE user_id = ?";
 $stmt = $conn->prepare($getClassTeacherQuery);

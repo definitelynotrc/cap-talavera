@@ -1,7 +1,10 @@
 <?php
 session_start();
-
-// Database connection
+$user_id = $_SESSION['user_id'];
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit;
+}
 $servername = "localhost";
 $username = "root";
 $password = "";
@@ -12,59 +15,8 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-$user_id = $_SESSION['user_id'];
-// Fetch all `sub_id` values assigned to the student from the class_teacher table
-$getStudentSubjectsQuery = "
-    SELECT DISTINCT sub_id 
-    FROM class_teacher 
-    WHERE user_id = ?
-";
-$stmt = $conn->prepare($getStudentSubjectsQuery);
-$stmt->bind_param('i', $user_id); // $user_id is the student's ID
-$stmt->execute();
-$result = $stmt->get_result();
-$studentSubIdsArray = $result->fetch_all(MYSQLI_ASSOC);
-
-// Extract `sub_id` values into a flat array
-$studentSubIds = array_column($studentSubIdsArray, 'sub_id');
-// Check if $studentSubIds is not empty
-if (!empty($studentSubIds)) {
-    // Create placeholders for the sub_ids
-    $placeholders = implode(',', array_fill(0, count($studentSubIds), '?')); // "?, ?, ?, ?, ?, ?"
-
-    $instructorQuery = "
-        SELECT 
-            u.user_id, 
-            u.fName, 
-            u.lName, 
-            ct.teacher_type, 
-            ct.class_teacher_id, 
-            s.subjects 
-        FROM users u
-        JOIN class_teacher ct ON u.user_id = ct.user_id
-        JOIN subject s ON ct.sub_id = s.sub_id
-        WHERE ct.sub_id IN ($placeholders) 
-          AND u.role = 'Instructor';
-    ";
-
-    $stmt = $conn->prepare($instructorQuery);
-
-    if ($stmt) {
-        // Bind the $studentSubIds dynamically
-        $types = str_repeat('i', count($studentSubIds)); // "iiiiii" for 6 integers
-        $stmt->bind_param($types, ...$studentSubIds);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $instructors = $result->fetch_all(MYSQLI_ASSOC);
 
 
-    } else {
-        die("Error preparing query: " . $conn->error);
-    }
-} else {
-    $instructors = [];
-    echo "No subjects found for this student.";
-}
 
 ?>
 <!DOCTYPE html>
@@ -293,9 +245,10 @@ WHERE ct.class_teacher_id = ?
 
 
                         <table class="table">
+
                             <thead>
                                 <tr>
-                                    <th class="th">Item</th>
+                                    <th>Question</th>
                                     <th>5</th>
                                     <th>4</th>
                                     <th>3</th>
@@ -304,78 +257,119 @@ WHERE ct.class_teacher_id = ?
                                 </tr>
                             </thead>
                             <tbody>
-
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th>Question</th>
-                                            <th>5</th>
-                                            <th>4</th>
-                                            <th>3</th>
-                                            <th>2</th>
-                                            <th>1</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php
+                                <?php
 
 
-                                        // Fetch active questions
-                                        $query = "SELECT ques_id, questions FROM question WHERE status = 'active' ORDER BY ques_id ASC";
-                                        $result = $conn->query($query);
+                                // Fetch active questions
+                                $query = "SELECT ques_id, questions FROM question WHERE status = 'active' ORDER BY ques_id ASC";
+                                $result = $conn->query($query);
 
-                                        if ($result->num_rows > 0) {
-                                            while ($row = $result->fetch_assoc()) {
-                                                echo '<tr>';
-                                                echo '<td>' . htmlspecialchars($row['ques_id'] . '. ' . $row['questions']) . '</td>';
+                                if ($result->num_rows > 0) {
+                                    while ($row = $result->fetch_assoc()) {
+                                        echo '<tr>';
+                                        echo '<td>' . htmlspecialchars($row['ques_id'] . '. ' . $row['questions']) . '</td>';
 
-                                                // Generate radio buttons for each question
-                                                for ($i = 5; $i >= 1; $i--) {
-                                                    echo '<td><input type="radio" name="q' . $row['ques_id'] . '" value="' . $i . '" required></td>';
-                                                }
-                                                echo '</tr>';
-                                            }
-                                        } else {
-                                            echo '<tr><td colspan="6">No questions available.</td></tr>';
+                                        // Generate radio buttons for each question
+                                        for ($i = 5; $i >= 1; $i--) {
+                                            echo '<td><input type="radio" name="q' . $row['ques_id'] . '" value="' . $i . '" required></td>';
                                         }
+                                        echo '</tr>';
+                                    }
+                                } else {
+                                    echo '<tr><td colspan="6">No questions available.</td></tr>';
+                                }
 
-                                        ?>
-                                    </tbody>
-                                </table>
+                                ?>
+                            </tbody>
+                        </table>
 
 
 
-                                <div class="remarksContainer">
-                                    <label for=""><strong>Remarks </strong></label>
-                                    <textarea name="remarks" id="remarks" cols="30" rows="10"
-                                        placeholder="Enter your remarks"></textarea>
-                                    <button type="submit">Submit</button>
-                                </div>
+                        <div class="remarksContainer">
+                            <label for=""><strong>Remarks </strong></label>
+                            <textarea name="remarks" id="remarks" cols="30" rows="10"
+                                placeholder="Enter your remarks"></textarea>
+                            <button type="submit">Submit</button>
+                        </div>
                     </form>
                 </div>
 
-                <div class="instructorContainer">
+                <div class="instructorContainer" style="padding: 10px;">
                     <h1>Instructors</h1>
+                    <?php
+                    $sectionOfUserQuery = "
+    SELECT 
+        cs.section_id, 
+        s.sections, 
+        s.class_id,
+        c.year_level                 
+    FROM class_student cs
+    JOIN section s ON cs.section_id = s.section_id
+    JOIN class c ON s.class_id = c.class_id
+    WHERE cs.user_id = ?
+";
+
+                    $stmt = $conn->prepare($sectionOfUserQuery);
+                    $stmt->bind_param("i", $user_id); // Assuming $user_id contains the logged-in user's ID
+                    $stmt->execute();
+                    $result = $stmt->get_result();
+
+                    if ($row = $result->fetch_assoc()) {
+                        $sectionId = $row['section_id'];
+                        $sectionName = $row['sections'];
+                        $yearLevel = $row['year_level'];
+                    } else {
+                        $sectionName = "N/A";
+                        $yearLevel = "N/A";
+                    }
+                    ?>
+
+                    <p>Section: <?php echo htmlspecialchars($yearLevel . " " . $sectionName); ?></p>
+
 
                     <?php
-                    if (!empty($instructors)) {
-                        foreach ($instructors as $row) {
-                            $fullName = htmlspecialchars($row['fName']) . ' ' . htmlspecialchars($row['lName']);
+                    $studentId = $user_id;  // Assuming $user_id is the logged-in student's ID
+                    $instructorsQuery = "
+    SELECT 
+        ct.class_teacher_id,
+        s.sub_id, 
+        s.subjects,
+        u.fname AS instructor_fname,
+        u.lname AS instructor_lname,
+        ct.teacher_type
+    FROM class_student cs
+    JOIN section_subjec ss ON cs.section_id = ss.section_id
+    JOIN subject s ON ss.sub_id = s.sub_id
+    LEFT JOIN class_teacher ct ON s.sub_id = ct.sub_id
+    LEFT JOIN users u ON ct.user_id = u.user_id
+    WHERE cs.user_id = ? 
+    AND ct.class_teacher_id IN (SELECT MIN(class_teacher_id) 
+                                 FROM class_teacher 
+                                 WHERE sub_id = s.sub_id)
+    ORDER BY s.subjects;
+";
+
+
+
+
+                    $stmt = $conn->prepare($instructorsQuery);
+                    $stmt->bind_param('i', $studentId);
+                    $stmt->execute();
+                    $result = $stmt->get_result();
+
+                    if ($result->num_rows > 0) {
+                        while ($row = $result->fetch_assoc()) {
+                            $fullName = htmlspecialchars($row['instructor_fname']) . ' ' . htmlspecialchars($row['instructor_lname']);
                             $teacherType = htmlspecialchars($row['teacher_type']);
                             $subjectName = htmlspecialchars($row['subjects']);
 
-
+                            // Check if the student has already evaluated the instructor
                             $evaluationQuery = "
-            SELECT eval_id 
-            FROM evaluation 
-            WHERE class_teacher_id = ? AND user_id = ?
-        ";
+                SELECT eval_id 
+                FROM evaluation 
+                WHERE class_teacher_id = ? AND user_id = ?
+            ";
                             $evalStmt = $conn->prepare($evaluationQuery);
-
-                            if (!$evalStmt) {
-                                die("Query preparation failed: " . $conn->error);
-                            }
-
                             $evalStmt->bind_param('ii', $row['class_teacher_id'], $user_id);
                             $evalStmt->execute();
                             $evalResult = $evalStmt->get_result();
@@ -390,7 +384,7 @@ WHERE ct.class_teacher_id = ?
                                 <div class="instructorDetails">
                                     <div>
                                         <h3><?php echo $fullName; ?></h3>
-                                        <p><?php echo htmlspecialchars($row['teacher_type']); ?></p>
+                                        <p><?php echo $teacherType; ?></p>
                                         <span><?php echo $subjectName; ?></span>
                                     </div>
                                 </div>
@@ -401,14 +395,8 @@ WHERE ct.class_teacher_id = ?
                         echo '<p>No instructors available for evaluation.</p>';
                     }
                     ?>
-
-
-
-
-
-
-
                 </div>
+
             </div>
 
             <script src="main.js"></script>

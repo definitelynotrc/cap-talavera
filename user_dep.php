@@ -1,4 +1,10 @@
 <?php
+session_start();
+$user_id = $_SESSION['user_id'];
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit;
+}
 // Database connection details
 $host = 'localhost'; // Change to your host
 $dbname = 'cap'; // Change to your database name
@@ -11,7 +17,7 @@ try {
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     // Fetch instructors (users with role "Instructor")
-    $instructorsQuery = "SELECT user_id, CONCAT(fname, ' ', lname) AS fullname FROM users WHERE role = 'Instructor'";
+    $instructorsQuery = "SELECT user_id, CONCAT(fname, ' ', lname) AS fullname FROM users WHERE user_id NOT IN (SELECT user_id FROM user_dep WHERE isActive = 1) ";
     $instructorsStmt = $conn->prepare($instructorsQuery);
     $instructorsStmt->execute();
     $instructors = $instructorsStmt->fetchAll(PDO::FETCH_ASSOC);
@@ -48,6 +54,7 @@ try {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -57,33 +64,40 @@ try {
             font-family: Arial, sans-serif;
             margin: 20px;
         }
+
         form {
             max-width: 500px;
             margin: auto;
         }
+
         label {
             display: block;
             margin: 10px 0 5px;
             font-weight: bold;
         }
-        select, button {
+
+        select,
+        button {
             width: 100%;
             padding: 10px;
             margin-bottom: 15px;
             border: 1px solid #ccc;
             border-radius: 5px;
         }
+
         button {
             background-color: #007BFF;
             color: white;
             border: none;
             cursor: pointer;
         }
+
         button:hover {
             background-color: #0056b3;
         }
     </style>
 </head>
+
 <body>
     <h1>Assign Department to Instructor</h1>
 
@@ -111,4 +125,5 @@ try {
         <button type="submit">Assign Department</button>
     </form>
 </body>
+
 </html>

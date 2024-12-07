@@ -1,5 +1,10 @@
 <?php
-// Database configuration
+session_start();
+$user_id = $_SESSION['user_id'];
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit;
+}
 $servername = "localhost";
 $username = "root";
 $password = "";
@@ -68,6 +73,7 @@ if (isset($_GET['rate_id'])) {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -79,7 +85,7 @@ if (isset($_GET['rate_id'])) {
 <body>
     <div class="containerr">
         <div class="navigation">
-        <ul>
+            <ul>
                 <li>
                     <a href="index.php">
                         <span class="icon"><ion-icon name="school"></ion-icon></span>
@@ -88,40 +94,52 @@ if (isset($_GET['rate_id'])) {
                 </li>
 
                 <li id="dashboard">
-                    <a href="dashboard.php"><span class="icon"><ion-icon name="home"></ion-icon></span><span class="title">Dashboard</span></a>
+                    <a href="dashboard.php"><span class="icon"><ion-icon name="home"></ion-icon></span><span
+                            class="title">Dashboard</span></a>
                 </li>
                 <li id="instructor">
-                    <a href="instructor.php"><span class="icon"><ion-icon name="person-add"></ion-icon></span><span class="title">Instructor</span></a>
+                    <a href="instructor.php"><span class="icon"><ion-icon name="person-add"></ion-icon></span><span
+                            class="title">Instructor</span></a>
                 </li>
                 <li id="student">
-                    <a href="student.php"><span class="icon"><ion-icon name="person-add"></ion-icon></span><span class="title">Student</span></a>
+                    <a href="student.php"><span class="icon"><ion-icon name="person-add"></ion-icon></span><span
+                            class="title">Student</span></a>
                 </li>
                 <li id="department">
-                    <a href="department.php"><span class="icon"><ion-icon name="desktop"></ion-icon></span><span class="title">Department</span></a>
+                    <a href="department.php"><span class="icon"><ion-icon name="desktop"></ion-icon></span><span
+                            class="title">Department</span></a>
                 </li>
                 <li id="subject">
-                <a href="subject.php"><span class="icon"><ion-icon name="desktop"></ion-icon></span><span class="title">Subject</span></a>
+                    <a href="subject.php"><span class="icon"><ion-icon name="desktop"></ion-icon></span><span
+                            class="title">Subject</span></a>
                 </li>
                 <li id="class">
-                    <a href="class.php"><span class="icon"><ion-icon name="desktop"></ion-icon></span><span class="title">Class</span></a>
+                    <a href="class.php"><span class="icon"><ion-icon name="desktop"></ion-icon></span><span
+                            class="title">Class</span></a>
                 </li>
                 <li id="section">
-                    <a href="section.php"><span class="icon"><ion-icon name="desktop"></ion-icon></span><span class="title">Section</span></a>
+                    <a href="section.php"><span class="icon"><ion-icon name="desktop"></ion-icon></span><span
+                            class="title">Section</span></a>
                 </li>
                 <li id="semester">
-                    <a href="semester.php"><span class="icon"><ion-icon name="desktop"></ion-icon></span><span class="title">Semester</span></a>
+                    <a href="semester.php"><span class="icon"><ion-icon name="desktop"></ion-icon></span><span
+                            class="title">Semester</span></a>
                 </li>
                 <li id="academic">
-                    <a href="acad_year.php"><span class="icon"><ion-icon name="desktop"></ion-icon></span><span class="title">Academic Year</span></a>
+                    <a href="acad_year.php"><span class="icon"><ion-icon name="desktop"></ion-icon></span><span
+                            class="title">Academic Year</span></a>
                 </li>
                 <li id="question">
-                    <a href="question.php"><span class="icon"><ion-icon name="desktop"></ion-icon></span><span class="title">Question</span></a>
+                    <a href="question.php"><span class="icon"><ion-icon name="desktop"></ion-icon></span><span
+                            class="title">Question</span></a>
                 </li>
                 <li id="rate">
-                    <a href="rate.php"><span class="icon"><ion-icon name="desktop"></ion-icon></span><span class="title">Rate</span></a>
+                    <a href="rate.php"><span class="icon"><ion-icon name="desktop"></ion-icon></span><span
+                            class="title">Rate</span></a>
                 </li>
                 <li id="evaluation">
-                    <a href="evaluation.php"><span class="icon"><ion-icon name="desktop"></ion-icon></span><span class="title">Evaluation</span></a>
+                    <a href="evaluation.php"><span class="icon"><ion-icon name="desktop"></ion-icon></span><span
+                            class="title">Evaluation</span></a>
                 </li>
             </ul>
         </div>
@@ -164,25 +182,26 @@ if (isset($_GET['rate_id'])) {
 
                         <div class="form-group">
                             <label for="rate_name" class="form-label">Rate Name</label>
-                            <input type="text" name="rate_name" id="rate_name" class="form-input" 
-                                   value="<?php echo $rateToEdit ? htmlspecialchars($rateToEdit['rate_name']) : ''; ?>" 
-                                   placeholder="Enter rate name" required>
+                            <input type="text" name="rate_name" id="rate_name" class="form-input"
+                                value="<?php echo $rateToEdit ? htmlspecialchars($rateToEdit['rate_name']) : ''; ?>"
+                                placeholder="Enter rate name" required>
                         </div>
 
                         <div class="form-group">
                             <label for="rate" class="form-label">Rate</label>
-                            <input type="number" name="rates" id="rates" class="form-input" 
-                                   value="<?php echo $rateToEdit ? htmlspecialchars($rateToEdit['rate']) : ''; ?>" 
-                                   placeholder="Enter rate" required>
+                            <input type="number" name="rates" id="rates" class="form-input"
+                                value="<?php echo $rateToEdit ? htmlspecialchars($rateToEdit['rate']) : ''; ?>"
+                                placeholder="Enter rate" required>
                         </div>
 
                         <div class="form-group">
                             <label for="description" class="form-label">Description</label>
-                            <textarea name="description" id="description" class="form-input" rows="4" 
-                                      placeholder="Enter rate description"><?php echo $rateToEdit ? htmlspecialchars($rateToEdit['description']) : ''; ?></textarea>
+                            <textarea name="description" id="description" class="form-input" rows="4"
+                                placeholder="Enter rate description"><?php echo $rateToEdit ? htmlspecialchars($rateToEdit['description']) : ''; ?></textarea>
                         </div>
 
-                        <button type="submit" class="submit-btn"><?php echo isset($rateToEdit) ? 'Update' : 'Add'; ?> Rate</button>
+                        <button type="submit" class="submit-btn"><?php echo isset($rateToEdit) ? 'Update' : 'Add'; ?>
+                            Rate</button>
                     </form>
                 </div>
             </div>
@@ -228,21 +247,22 @@ if (isset($_GET['rate_id'])) {
             var span = document.getElementsByClassName("close")[0];
 
             // Open modal for adding new rate
-            btn.onclick = function() {
+            btn.onclick = function () {
                 modal.style.display = "block";
             }
 
             // Close modal when clicking the close button
-            span.onclick = function() {
+            span.onclick = function () {
                 modal.style.display = "none";
             }
 
             // Close modal when clicking outside of it
-            window.onclick = function(event) {
+            window.onclick = function (event) {
                 if (event.target == modal) {
                     modal.style.display = "none";
                 }
             }
         </script>
-    </body>
+</body>
+
 </html>

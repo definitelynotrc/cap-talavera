@@ -1,90 +1,83 @@
 <?php
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    // Create connection
-    $conn = new mysqli('localhost', 'root', '', 'cap');
+    try {
+        // Create PDO connection
+        $conn = new PDO('mysql:host=localhost;dbname=cap', 'root', '');
+        $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    if ($conn->connect_error) {
-        die('Connection failed: ' . $conn->connect_error);
-    }
+        // Get and sanitize inputs
+        $remarks = isset($_POST['remarks']) ? trim($_POST['remarks']) : '';
+        $user_id = isset($_POST['user_id']) ? (int) $_POST['user_id'] : 0;
+        $class_teacher_id = isset($_POST['class_teacher_id']) ? (int) $_POST['class_teacher_id'] : 0;
 
-    // Get Remarks
-    $remarks = isset($_POST['remarks']) ? trim($_POST['remarks']) : '';
+        if ($user_id <= 0 || $class_teacher_id <= 0) {
+            throw new Exception('User ID or Class Teacher ID is missing.');
+        }
 
-    // Ensure user_id and class_teacher_id are set and not empty
-    if (isset($_POST['user_id']) && isset($_POST['class_teacher_id'])) {
-        $user_id = $_POST['user_id'];
-        $class_teacher_id = $_POST['class_teacher_id'];
-    } else {
-        // Handle missing user_id or class_teacher_id (you could redirect or show an error message)
-        die('User ID or Class Teacher ID is missing.');
-    }
+        // Generate a unique transaction code (e.g., a combination of the current timestamp and a random string)
+        $transaction_code = strtoupper(bin2hex(random_bytes(4))) . '-' . time();
 
-    // Calculate rate_result based on the ratings
-    $totalRating = 0;
-    $totalQuestions = 0;
+        // Calculate rate_result based on the ratings
+        $totalRating = 0;
+        $totalQuestions = 0;
 
-    // Loop over POST data for ratings and calculate the total score
-    foreach ($_POST as $key => $value) {
-        if (preg_match('/^q(\d+)$/', $key, $matches)) {
-            $rate_id = intval($value); // Ensure the value is an integer
+        foreach ($_POST as $key => $value) {
+            if (preg_match('/^q(\d+)$/', $key, $matches)) {
+                $rate_id = (int) $value;
 
-            // Validate the rating before including it in the total
-            if ($rate_id >= 1 && $rate_id <= 5) {  // Assuming rate_id should be between 1 and 5
-                $totalRating += $rate_id;
-                $totalQuestions++;
-            } else {
-                // Handle invalid rating value
-                echo "Invalid rating value for question ID $matches[1].";
+                if ($rate_id >= 1 && $rate_id <= 5) {
+                    $totalRating += $rate_id;
+                    $totalQuestions++;
+                } else {
+                    throw new Exception("Invalid rating value for question ID $matches[1].");
+                }
             }
         }
-    }
 
-    // Calculate the rate_result (average rating)
-    $rate_result = ($totalQuestions > 0) ? ($totalRating / $totalQuestions) : 0;
+        $rate_result = ($totalQuestions > 0) ? ($totalRating / $totalQuestions) : 0;
 
-    // Insert into evaluation table
-    $stmt = $conn->prepare("INSERT INTO evaluation (remarks, rate_result, user_id, class_teacher_id, date_created) VALUES (?, ?, ?, ?, NOW())");
-    if ($stmt === false) {
-        die('Error preparing query: ' . $conn->error);
-    }
-    $stmt->bind_param('siii', $remarks, $rate_result, $user_id, $class_teacher_id);
+        // Start transaction
+        $conn->beginTransaction();
 
-    if (!$stmt->execute()) {
-        die('Error executing query: ' . $stmt->error);
-    }
-    $eval_id = $stmt->insert_id;
-    $stmt->close();
+        // Insert into evaluation table
+        $stmt = $conn->prepare("INSERT INTO evaluation (transaction_code, remarks, rate_result, user_id, class_teacher_id, date_created) VALUES (?, ?, ?, ?, ?, NOW())");
+        $stmt->execute([$transaction_code, $remarks, $rate_result, $user_id, $class_teacher_id]);
+        $eval_id = $conn->lastInsertId();
 
-    // Insert into ratings table (loop over POST data for ratings)
-    foreach ($_POST as $key => $value) {
-        if (preg_match('/^q(\d+)$/', $key, $matches)) {
-            $ques_id = $matches[1];
-            $rate_id = intval($value); // Ensure the value is an integer
+        // Insert into ratings table
+        foreach ($_POST as $key => $value) {
+            if (preg_match('/^q(\d+)$/', $key, $matches)) {
+                $ques_id = $matches[1];
+                $rate_id = (int) $value;
 
-            // Validate the rating before inserting
-            if ($rate_id >= 1 && $rate_id <= 5) {  // Assuming rate_id should be between 1 and 5
-                $stmt = $conn->prepare("INSERT INTO ratings (eval_id, ques_id, rate_id, date_created) VALUES (?, ?, ?, NOW())");
-                if ($stmt === false) {
-                    die('Error preparing ratings query: ' . $conn->error);
+                if ($rate_id >= 1 && $rate_id <= 5) {
+                    $stmt = $conn->prepare("INSERT INTO ratings (eval_id, ques_id, rate_id, date_created) VALUES (?, ?, ?, NOW())");
+                    $stmt->execute([$eval_id, $ques_id, $rate_id]);
+                } else {
+                    throw new Exception("Invalid rating value for question ID $ques_id.");
                 }
-                $stmt->bind_param('iii', $eval_id, $ques_id, $rate_id);
-
-                if (!$stmt->execute()) {
-                    die('Error executing ratings query: ' . $stmt->error);
-                }
-                $stmt->close();
-            } else {
-                // Handle invalid rating value
-                echo "Invalid rating value for question ID $ques_id.";
             }
         }
+
+        // Commit transaction
+        $conn->commit();
+
+        // Redirect after successful submission
+        header("Location: student_evaluation.php");
+        exit();
+    } catch (Exception $e) {
+        // Rollback transaction on error
+        if (isset($conn) && $conn->inTransaction()) {
+            $conn->rollBack();
+        }
+
+        echo "Error: " . $e->getMessage();
+    } finally {
+        // Close the connection
+        if (isset($conn)) {
+            $conn = null;
+        }
     }
-
-    // Close connection
-    $conn->close();
-
-    header("Location: student_evaluation.php");
-    echo "Evaluation submitted successfully!";
 }
 ?>

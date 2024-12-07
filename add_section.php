@@ -11,7 +11,7 @@ if ($conn->connect_error) {
 
 if (isset($_POST['add'])) {
     $sections = trim($_POST['sections']);
-    $status = trim($_POST['status']);
+    $status = "Active";
     $department = $_POST['department'];
     $year_level = $_POST['class_id']; // Get year level
 

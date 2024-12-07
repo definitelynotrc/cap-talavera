@@ -1,5 +1,10 @@
 <?php
-// Database connection details
+session_start();
+$user_id = $_SESSION['user_id'];
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit;
+}
 $host = 'localhost'; // Change to your host
 $dbname = 'cap'; // Change to your database name
 $username = 'root'; // Change to your database username

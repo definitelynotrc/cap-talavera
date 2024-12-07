@@ -1,5 +1,10 @@
 <?php
-// Database configuration
+session_start();
+$user_id = $_SESSION['user_id'];
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit;
+}
 $servername = "localhost";
 $username = "root";
 $password = "";
@@ -87,6 +92,7 @@ if (isset($_GET['archived']) && $_GET['archived'] == 'true') {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -106,43 +112,55 @@ if (isset($_GET['archived']) && $_GET['archived'] == 'true') {
                     </a>
                 </li>
                 <li id="dashboard">
-                    <a href="dashboard.php"><span class="icon"><ion-icon name="home"></ion-icon></span><span class="title">Dashboard</span></a>
+                    <a href="dashboard.php"><span class="icon"><ion-icon name="home"></ion-icon></span><span
+                            class="title">Dashboard</span></a>
                 </li>
                 <li id="instructor">
-                    <a href="instructor.php"><span class="icon"><ion-icon name="person-add"></ion-icon></span><span class="title">Instructor</span></a>
+                    <a href="instructor.php"><span class="icon"><ion-icon name="person-add"></ion-icon></span><span
+                            class="title">Instructor</span></a>
                 </li>
                 <li id="student">
-                    <a href="student.php"><span class="icon"><ion-icon name="person-add"></ion-icon></span><span class="title">Student</span></a>
+                    <a href="student.php"><span class="icon"><ion-icon name="person-add"></ion-icon></span><span
+                            class="title">Student</span></a>
                 </li>
                 <li id="department">
-                    <a href="department.php"><span class="icon"><ion-icon name="desktop"></ion-icon></span><span class="title">Department</span></a>
+                    <a href="department.php"><span class="icon"><ion-icon name="desktop"></ion-icon></span><span
+                            class="title">Department</span></a>
                 </li>
                 <li id="subject">
-                <a href="subject.php"><span class="icon"><ion-icon name="desktop"></ion-icon></span><span class="title">Subject</span></a>
+                    <a href="subject.php"><span class="icon"><ion-icon name="desktop"></ion-icon></span><span
+                            class="title">Subject</span></a>
                 </li>
                 <li id="class">
-                    <a href="class.php"><span class="icon"><ion-icon name="desktop"></ion-icon></span><span class="title">Class</span></a>
+                    <a href="class.php"><span class="icon"><ion-icon name="desktop"></ion-icon></span><span
+                            class="title">Class</span></a>
                 </li>
                 <li id="section">
-                    <a href="section.php"><span class="icon"><ion-icon name="desktop"></ion-icon></span><span class="title">Section</span></a>
+                    <a href="section.php"><span class="icon"><ion-icon name="desktop"></ion-icon></span><span
+                            class="title">Section</span></a>
                 </li>
                 <li id="semester">
-                    <a href="semester.php"><span class="icon"><ion-icon name="desktop"></ion-icon></span><span class="title">Semester</span></a>
+                    <a href="semester.php"><span class="icon"><ion-icon name="desktop"></ion-icon></span><span
+                            class="title">Semester</span></a>
                 </li>
                 <li id="academic">
-                    <a href="acad_year.php"><span class="icon"><ion-icon name="desktop"></ion-icon></span><span class="title">Academic Year</span></a>
+                    <a href="acad_year.php"><span class="icon"><ion-icon name="desktop"></ion-icon></span><span
+                            class="title">Academic Year</span></a>
                 </li>
                 <li id="question">
-                    <a href="question.php"><span class="icon"><ion-icon name="desktop"></ion-icon></span><span class="title">Question</span></a>
+                    <a href="question.php"><span class="icon"><ion-icon name="desktop"></ion-icon></span><span
+                            class="title">Question</span></a>
                 </li>
                 <li id="rate">
-                    <a href="rate.php"><span class="icon"><ion-icon name="desktop"></ion-icon></span><span class="title">Rate</span></a>
+                    <a href="rate.php"><span class="icon"><ion-icon name="desktop"></ion-icon></span><span
+                            class="title">Rate</span></a>
                 </li>
                 <li id="evaluation">
-                    <a href="evaluation.php"><span class="icon"><ion-icon name="desktop"></ion-icon></span><span class="title">Evaluation</span></a>
+                    <a href="evaluation.php"><span class="icon"><ion-icon name="desktop"></ion-icon></span><span
+                            class="title">Evaluation</span></a>
                 </li>
 
-                </ul>
+            </ul>
         </div>
 
         <div class="main">
@@ -181,18 +199,21 @@ if (isset($_GET['archived']) && $_GET['archived'] == 'true') {
 
                         <div class="form-group">
                             <label for="questions" class="form-label">Question</label>
-                            <input type="text" name="questions" id="questions" class="form-input" 
-                                   value="<?php echo $questionToEdit ? htmlspecialchars($questionToEdit['questions']) : ''; ?>" 
-                                   placeholder="Enter question" required>
+                            <input type="text" name="questions" id="questions" class="form-input"
+                                value="<?php echo $questionToEdit ? htmlspecialchars($questionToEdit['questions']) : ''; ?>"
+                                placeholder="Enter question" required>
                         </div>
 
-                        <button type="submit" class="submit-btn"><?php echo isset($questionToEdit) ? 'Update' : 'Add'; ?> Question</button>
+                        <button type="submit"
+                            class="submit-btn"><?php echo isset($questionToEdit) ? 'Update' : 'Add'; ?>
+                            Question</button>
                     </form>
                 </div>
-            </div> 
+            </div>
 
             <!-- Button to View Archived Questions -->
-            <a href="question.php<?php echo isset($_GET['archived']) && $_GET['archived'] == 'true' ? '' : '?archived=true'; ?>" class="btn view-archived-btn">
+            <a href="question.php<?php echo isset($_GET['archived']) && $_GET['archived'] == 'true' ? '' : '?archived=true'; ?>"
+                class="btn view-archived-btn">
                 <?php echo isset($_GET['archived']) && $_GET['archived'] == 'true' ? 'View Active Questions' : 'View Archived Questions'; ?>
             </a>
 
@@ -213,8 +234,10 @@ if (isset($_GET['archived']) && $_GET['archived'] == 'true') {
                                 <td><?php echo htmlspecialchars($question['questions']); ?></td>
                                 <td><?php echo htmlspecialchars($question['date_created']); ?></td>
                                 <td>
-                                    <a href="?ques_id=<?php echo $question['ques_id']; ?>" class="btn edit-btn">Edit</a> <br> <br>
-                                    <a href="archive_question.php?id=<?php echo $question['ques_id']; ?>" class="btn archive-btn">Archive</a>
+                                    <a href="?ques_id=<?php echo $question['ques_id']; ?>" class="btn edit-btn">Edit</a> <br>
+                                    <br>
+                                    <a href="archive_question.php?id=<?php echo $question['ques_id']; ?>"
+                                        class="btn archive-btn">Archive</a>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -244,7 +267,8 @@ if (isset($_GET['archived']) && $_GET['archived'] == 'true') {
                                     <td><?php echo htmlspecialchars($question['questions']); ?></td>
                                     <td><?php echo htmlspecialchars($question['date_created']); ?></td>
                                     <td>
-                                        <a href="restore_question.php?id=<?php echo $question['ques_id']; ?>" class="btn restore-btn">Restore</a>
+                                        <a href="restore_question.php?id=<?php echo $question['ques_id']; ?>"
+                                            class="btn restore-btn">Restore</a>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -261,24 +285,24 @@ if (isset($_GET['archived']) && $_GET['archived'] == 'true') {
 
     <script src="main.js"></script>
     <script src="https://unpkg.com/ionicons@4.5.10-0/dist/ionicons.js"></script>
-    
+
     <script>
         var modal = document.getElementById("myModal");
         var btn = document.getElementById("addQuestionBtn");
         var span = document.getElementsByClassName("close")[0];
 
         // Open modal for adding new department
-        btn.onclick = function() {
+        btn.onclick = function () {
             modal.style.display = "block";
         }
 
         // Close modal when clicking the close button
-        span.onclick = function() {
+        span.onclick = function () {
             modal.style.display = "none";
         }
 
         // Close modal if clicked outside of modal content
-        window.onclick = function(event) {
+        window.onclick = function (event) {
             if (event.target == modal) {
                 modal.style.display = "none";
             }
@@ -290,4 +314,5 @@ if (isset($_GET['archived']) && $_GET['archived'] == 'true') {
         <?php endif; ?>
     </script>
 </body>
+
 </html>

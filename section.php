@@ -1,5 +1,10 @@
 <?php
-// Database connection details
+session_start();
+$user_id = $_SESSION['user_id'];
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit;
+}
 $servername = "localhost";
 $username = "root";
 $password = "";
@@ -395,7 +400,7 @@ if ($result === FALSE) {
                 </div>
                 <div class="form-group">
                     <label for="year_level" class="form-label">Year Level</label>
-                    <select name="year_level" id="year_level" class="form-input" required>
+                    <select name="class_id" id="year_level" class="form-input" required>
                         <option value="">Select Year Level</option>
                         <option value="1">First Year</option>
                         <option value="2">Second Year</option>
@@ -531,13 +536,13 @@ if ($result === FALSE) {
                         var option = document.createElement('option');
                         option.value = subject.sub_id;
 
-                        // Check if the instructor's name exists
-                        if (subject.instructor_fname && subject.instructor_lname) {
-                            option.textContent = subject.subjects +
-                                ' (Instructor: ' + subject.instructor_fname + ' ' + subject.instructor_lname + ')';
-                        } else {
-                            option.textContent = subject.subjects + ' (No Instructor Assigned)';
-                        }
+                        // Check if the instructor's name exists and display semester
+                        var instructorText = subject.instructor_fname && subject.instructor_lname
+                            ? ' (Instructor: ' + subject.instructor_fname + ' ' + subject.instructor_lname + ')'
+                            : ' (No Instructor Assigned)';
+
+                        // Display subject with instructor and semester information
+                        option.textContent = subject.subjects + instructorText + ' (Semester: ' + subject.semester + ')';
 
                         select.appendChild(option);
                     });
@@ -547,6 +552,7 @@ if ($result === FALSE) {
             };
             xhr.send();
         }
+
 
 
 
@@ -571,6 +577,7 @@ if ($result === FALSE) {
             };
             xhr.send('section_id=' + sectionId + '&subjects=' + JSON.stringify(selectedSubjects));
         });
+
 
         function openEditModal(section_id, sections, status) {
             document.getElementById('editSectionId').value = section_id;

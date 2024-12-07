@@ -1,5 +1,10 @@
 <?php
-// Database connection details
+session_start();
+$user_id = $_SESSION['user_id'];
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit;
+}
 $servername = "localhost";
 $username = "root";
 $password = "";
@@ -13,33 +18,29 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Handle Assign Teacher to Class request (form submission)
-if (isset($_POST['assign'])) {
-    $teacher_type = $_POST['teacher_type'];
-    $advisory_class_id = $_POST['advisory_class_id'];
-    $sub_id = $_POST['sub_id'];
-    $user_id = $_POST['user_id'];
 
-    // Insert the assignment into the class_teacher table
-    $stmt = $conn->prepare("INSERT INTO class_teacher (advisory_class_id, teacher_type, sub_id, user_id) VALUES (?, ?, ?, ?)");
-    $stmt->bind_param("isii", $advisory_class_id, $teacher_type, $sub_id, $user_id);
-
-    // Execute and check for success
-    if ($stmt->execute()) {
-        echo "<script>alert('Teacher assigned successfully!');</script>";
-    } else {
-        echo "Error: " . $stmt->error;
-    }
-
-    $stmt->close();
-}
 
 // Fetch all subjects, instructors, and classes
-$subjectsQuery = "SELECT * FROM subject";
+$subjectsQuery = "
+    SELECT subject.*, dep_sub.dep_id, dep_sub.sem_id, semester.semesters, department.department
+    FROM subject
+    JOIN dep_sub ON subject.sub_id = dep_sub.sub_id
+    JOIN semester ON dep_sub.sem_id = semester.sem_id
+    JOIN department ON dep_sub.dep_id = department.dep_id
+
+";
 $subjectsResult = $conn->query($subjectsQuery);
 
-$instructorsQuery = "SELECT * FROM users WHERE role = 'instructor'";
+
+$instructorsQuery = "
+    SELECT u.*, d.department
+    FROM users u
+    JOIN user_dep ud ON u.user_id = ud.user_id
+    JOIN department d ON ud.dep_id = d.dep_id
+    WHERE u.role = 'Instructor'
+";
 $instructorsResult = $conn->query($instructorsQuery);
+
 
 $classesQuery = "SELECT * FROM class";
 $classesResult = $conn->query($classesQuery);
@@ -53,28 +54,36 @@ $assignmentsQuery = "
         s.sub_id, 
         s.subjects, 
         c.year_level, 
-        ct.teacher_type 
+        ct.teacher_type,
+        ct.advisory_class_id,
+        ac.advisory_class_id AS advisory_class_table_id
     FROM class_teacher ct
-    JOIN users u ON ct.user_id = u.user_id
-    JOIN subject s ON ct.sub_id = s.sub_id
-    JOIN class c ON ct.advisory_class_id = c.class_id
+    LEFT JOIN users u ON ct.user_id = u.user_id
+    LEFT JOIN subject s ON ct.sub_id = s.sub_id
+    LEFT JOIN advisory_class ac ON ct.advisory_class_id = ac.advisory_class_id
+    LEFT JOIN class c ON ac.class_id = c.class_id
+    ORDER BY u.fname, u.lname;
 ";
+
+
+
 $assignmentsResult = $conn->query($assignmentsQuery);
 
-// Store the result into an array for reuse
+
+
 $assignments = [];
 while ($assignment = $assignmentsResult->fetch_assoc()) {
+    if (is_null($assignment['year_level'])) {
+        echo "Missing year level for advisory_class_id: " . $assignment['advisory_class_id'] . "<br>";
+    }
     $assignments[] = $assignment;
 }
 
-// Store already assigned teacher-subject combinations
-$assignedTeachersSubjects = [];
-foreach ($assignments as $assignment) {
-    $assignedTeachersSubjects[] = [
-        'user_id' => $assignment['user_id'],
-        'sub_id' => $assignment['sub_id']
-    ];
-}
+
+
+
+
+
 ?>
 
 <!DOCTYPE html>
@@ -249,7 +258,7 @@ foreach ($assignments as $assignment) {
                 <div id="myModal" class="modal">
                     <div class="modal-content">
                         <span class="close" id="closeModalBtn">&times;</span>
-                        <!-- Form to Assign Teacher to Class -->
+
                         <form action="assign_teacher.php" method="POST">
                             <div class="form-group">
                                 <label for="user_id">Select Instructor</label>
@@ -257,7 +266,7 @@ foreach ($assignments as $assignment) {
                                     <option value="">-- Select Instructor --</option>
                                     <?php while ($instructor = $instructorsResult->fetch_assoc()): ?>
                                         <option value="<?php echo htmlspecialchars($instructor['user_id']); ?>">
-                                            <?php echo htmlspecialchars($instructor['fname'] . ' ' . $instructor['lname']); ?>
+                                            <?php echo htmlspecialchars($instructor['fname'] . ' ' . $instructor['lname']) . ' (' . htmlspecialchars($instructor['department']) . ')'; ?>
                                         </option>
                                     <?php endwhile; ?>
                                 </select>
@@ -269,7 +278,8 @@ foreach ($assignments as $assignment) {
                                     <option value="">-- Select Subject --</option>
                                     <?php while ($subject = $subjectsResult->fetch_assoc()): ?>
                                         <option value="<?php echo htmlspecialchars($subject['sub_id']); ?>">
-                                            <?php echo htmlspecialchars($subject['subjects']); ?>
+                                            <?php echo htmlspecialchars($subject['subjects']) . ' (' . htmlspecialchars($subject['semesters']) . ') (' . htmlspecialchars($subject['department']) . ')'; ?>
+
                                         </option>
                                     <?php endwhile; ?>
                                 </select>

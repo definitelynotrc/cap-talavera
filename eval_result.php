@@ -1,4 +1,10 @@
 <?php
+session_start();
+$user_id = $_SESSION['user_id'];
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit;
+}
 $servername = "localhost";
 $username = "root";
 $password = "";
@@ -19,11 +25,6 @@ if ($conn->connect_error) {
     <link rel="stylesheet" href="style.css">
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-
         form {
             max-width: 500px;
             margin: auto;
@@ -168,9 +169,11 @@ if ($conn->connect_error) {
         </div>
 
         <table class="table">
+            <h2 style="margin-left: 10px;">Evaluation Results</h2>
             <thead>
                 <tr>
                     <th>Instructor Name</th>
+                    <th>Department</th>
                     <th>Total Respondents</th>
                     <th>Average Rating</th>
                     <th>Actions</th>
@@ -184,6 +187,8 @@ SELECT
     ct.class_teacher_id,
     u.fname AS fname,
     u.user_id,
+    UD.dep_id,
+    D.department,
     u.lname AS lname,
     COUNT(DISTINCT e.eval_id) AS total_respondents,
     SUM(e.rate_result) AS total_ratings,  -- Summing all ratings
@@ -191,6 +196,8 @@ SELECT
 FROM evaluation e
 JOIN class_teacher ct ON e.class_teacher_id = ct.class_teacher_id
 JOIN users u ON ct.user_id = u.user_id
+JOIN user_dep UD ON u.user_id = UD.user_id
+JOIN department D ON UD.dep_id = D.dep_id
 GROUP BY ct.class_teacher_id, u.fname, u.lname
 ORDER BY u.lname ASC;
 ";
@@ -209,6 +216,7 @@ ORDER BY u.lname ASC;
 
                         echo '<tr>';
                         echo '<td>' . htmlspecialchars($row['lname'] . ', ' . $row['fname']) . '</td>';
+                        echo '<td>' . htmlspecialchars($row['department']) . ' </td>';
                         echo '<td>' . $row['total_respondents'] . '</td>';
                         echo '<td>' . number_format($avg_rating, 2) . '</td>';  // Display the average rating with 2 decimal points
                         echo '<td>';
@@ -260,9 +268,9 @@ ORDER BY u.lname ASC;
             </div>
         </div>
     </div>
-    <div id="evaluationResults">
-        <!-- Tables will be dynamically inserted here by JavaScript -->
-    </div>
+    <!-- <div id="evaluationResults">
+       
+    </div> -->
 
     <script src="main.js"></script>
 
@@ -359,13 +367,43 @@ ORDER BY u.lname ASC;
                 evaluationResultsDiv.innerHTML = '';
 
                 let evalResultsHTML = '';
+                let ratingCounts = {}; // Object to store rating counts for each question
+
                 response.evaluations.forEach((evaluation, index) => {
-                    evalResultsHTML += `Evaluation${index + 1}: ${evaluation.rating}<br>`;
+                    evalResultsHTML += `Evaluation ${index + 1}:<br>`;
+                    evalResultsHTML += `<strong>Question ${evaluation.question_id}:</strong> ${evaluation.question_text}<br>`;
+
+                    // Loop through the ratings for each question and count them
+                    const counts = evaluation.rating_counts;
+                    evalResultsHTML += `
+            5 - ${counts[5]}<br>
+            4 - ${counts[4]}<br>
+            3 - ${counts[3]}<br>
+            2 - ${counts[2]}<br>
+            1 - ${counts[1]}<br><br>
+        `;
                 });
 
+                // Now, generate the HTML for rating counts
+                evalResultsHTML += '<h4>Rating Counts per Question:</h4>';
+                Object.keys(ratingCounts).forEach((questionId) => {
+                    evalResultsHTML += `<strong>Question ${questionId}</strong>:<br>`;
+                    const counts = ratingCounts[questionId];
+                    evalResultsHTML += `
+            5 - ${counts[5]}<br>
+            4 - ${counts[4]}<br>
+            3 - ${counts[3]}<br>
+            2 - ${counts[2]}<br>
+            1 - ${counts[1]}<br><br>
+        `;
+                });
+
+                // Display the evaluation results in the modal
                 evaluationResultsDiv.innerHTML = evalResultsHTML;
                 averageRatingSpan.textContent = response.average_rating.toFixed(2);
             }
+
+
         });
 
 

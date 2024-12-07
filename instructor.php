@@ -1,5 +1,10 @@
 <?php
-// Database connection details
+session_start();
+$user_id = $_SESSION['user_id'];
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit;
+}
 $servername = "localhost";
 $username = "root";
 $password = "";
@@ -189,6 +194,14 @@ if (isset($_POST['edit'])) {
     $email = $_POST['email'];
     $role = $_POST['role'];
 
+    $stmt = $conn->prepare("SELECT email FROM users WHERE user_id = ?");
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $stmt->bind_result($currentEmail);
+    $stmt->fetch();
+    $stmt->close();
+    $tempPassword = bin2hex(random_bytes(4)); // Generates an 8-character random password
+
     $stmt = $conn->prepare("
         UPDATE users 
         SET fname=?, mname=?, lname=?, suffixname=?, contact_no=?, houseno=?, street=?, barangay=?, city=?, 
@@ -217,7 +230,12 @@ if (isset($_POST['edit'])) {
     );
 
     if ($stmt->execute()) {
+
         $_SESSION['success_message'] = "User updated successfully.";
+        if ($currentEmail != $email) {
+            // Send email if the email is changed
+            sendEmail($email, "{$firstname} {$lastname}", $tempPassword);
+        }
     } else {
         $_SESSION['error_message'] = "Error: " . $stmt->error;
     }
