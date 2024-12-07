@@ -50,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } elseif ($role === 'Instructor') {
                     header('Location: instructor_evaluation.php');
                 } else {
-                    header('Location: dashboard.php'); // Default redirection for other roles
+                    header('Location: dashboard.php'); // Default redirection for admin
                 }
                 exit;
             } else {
@@ -231,13 +231,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <!-- Login Form -->
         <form method="POST" action="">
-            <!-- Username Input -->
+            >
             <div class="input-wrapper">
                 <label for="email">Username</label>
                 <input type="text" id="email" name="email" required placeholder="Enter your username">
             </div>
 
-            <!-- Password Input -->
+
             <div class="input-wrapper">
                 <label for="password">Password</label>
                 <input type="password" id="password" name="password" required placeholder="Enter your password">
@@ -245,8 +245,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <button type="submit">Login</button>
         </form>
-
-    </div>
+        <div class="forget" style="margin-top: 12px;">
+            <a href="forget.php">Forget Password?</a>
+        </div>
 </body>
 
 </html>

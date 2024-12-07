@@ -26,7 +26,7 @@ if (isset($_POST['assign'])) {
 
     // Execute and check for success
     if ($stmt->execute()) {
-        echo "<script>alert('Teacher assigned successfully!'); window.location.href = 'assign_teacher.php';</script>";
+        echo "<script>alert('Teacher assigned successfully!'); window.location.href = 'manage_subject.php';</script>";
     } else {
         echo "Error: " . $stmt->error;
     }

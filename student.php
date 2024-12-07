@@ -4,6 +4,7 @@ $servername = "localhost";
 $username = "root";
 $password = "";
 $dbname = "cap"; // Replace with your actual database name 'cap'
+
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
@@ -70,14 +71,30 @@ if (isset($_POST['submit']) && isset($_FILES['csvFile'])) {
 
             $studentsAdded = 0;
             while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
-                if (count($data) < 15)
+                if (count($data) < 15) {
                     continue; // Ensure there are at least 15 columns
+                }
 
-                // Check if the role is "Instructor", if not, log an error and skip this row
+                // Check if the role is "Instructor"
                 if ($data[13] !== 'Student') {
                     $_SESSION['error_message'] = "Invalid role found for user {$data[0]} {$data[2]}: {$data[13]}. Skipping this user.";
                     continue; // Skip users who are not instructors
                 }
+
+                $email = $data[14];
+
+                // Check if the email already exists
+                $checkStmt = $conn->prepare("SELECT user_id FROM users WHERE email = ?");
+                $checkStmt->bind_param("s", $email);
+                $checkStmt->execute();
+                $checkStmt->store_result();
+
+                if ($checkStmt->num_rows > 0) {
+                    $_SESSION['error_message'] = "Email {$email} already exists. Skipping this user.";
+                    $checkStmt->close();
+                    continue; // Skip this user
+                }
+                $checkStmt->close();
 
                 // Temporary password generation
                 $tempPassword = bin2hex(random_bytes(6)); // 12-character temporary password
@@ -87,21 +104,18 @@ if (isset($_POST['submit']) && isset($_FILES['csvFile'])) {
                 try {
                     $dateObj = DateTime::createFromFormat('d/m/Y', $data[11]);
                     if ($dateObj === false || $dateObj === null) {
-                        // Force a default date if parsing fails
-                        $formattedBirthdate = '1990-01-01'; // Or another appropriate default
-                        echo "Invalid date for user {$data[0]} {$data[2]}. Using default: " . $data[11] . "<br>";
+                        $formattedBirthdate = '1990-01-01'; // Default date
                     } else {
                         $formattedBirthdate = $dateObj->format('Y-m-d');
                     }
                 } catch (Exception $e) {
-                    // Force a default date on any exception
-                    $formattedBirthdate = '1990-01-01';
-                    echo "Exception parsing date for user {$data[0]} {$data[2]}: " . $e->getMessage() . "<br>";
+                    $formattedBirthdate = '1990-01-01'; // Default date on exception
                 }
+
                 $fname = $data[0];
-                $mname = !empty($data[1]) ? $data[1] : NULL;  // Check if mname is not empty, otherwise set to NULL
+                $mname = !empty($data[1]) ? $data[1] : NULL;
                 $lname = $data[2];
-                $suffixname = !empty($data[3]) ? $data[3] : NULL;  // Check if suffixname is not empty, otherwise set to NULL
+                $suffixname = !empty($data[3]) ? $data[3] : NULL;
                 $contact_no = $data[4];
                 $houseno = $data[5];
                 $street = $data[6];
@@ -109,11 +123,10 @@ if (isset($_POST['submit']) && isset($_FILES['csvFile'])) {
                 $city = $data[8];
                 $province = $data[9];
                 $postalcode = $data[10];
-                $birthdate = DateTime::createFromFormat('d/m/Y', $data[11]);
                 $gender = $data[12];
                 $role = $data[13];
-                $email = $data[14];
                 $is_archived = 0;
+
                 $stmt->bind_param(
                     "sssssssssssssssss",
                     $fname,
@@ -138,7 +151,7 @@ if (isset($_POST['submit']) && isset($_FILES['csvFile'])) {
                 if ($stmt->execute()) {
                     $_SESSION['success_message'] = "User {$data[0]} {$data[2]} inserted successfully.";
                     sendEmail($email, "$fname $lname", $tempPassword);
-                    $studentsAdded++; // Increment the counter for successful instructor additions
+                    $instructorsAdded++;
                 } else {
                     $_SESSION['error_message'] = "Failed to insert user {$data[0]} {$data[2]}: " . $stmt->error;
                 }
@@ -267,6 +280,117 @@ if ($result === FALSE) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Users</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        .success-message {
+            color: green;
+            font-weight: bold;
+            padding: 10px;
+            border: 1px solid green;
+            background-color: #eafaf1;
+        }
+
+        .error-message {
+            color: red;
+            font-weight: bold;
+            padding: 10px;
+            border: 1px solid red;
+            background-color: #fce4e4;
+        }
+
+        .Addmodal {
+            display: none;
+            /* Hidden by default */
+            position: fixed;
+            z-index: 1;
+            /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%;
+            /* Full width */
+            height: 100%;
+            /* Full height */
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+            /* Black with opacity */
+        }
+
+        .Addmodal-dialog {
+            position: relative;
+            margin: 15% auto;
+            max-width: 500px;
+        }
+
+        .Addmodal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .Addmodal-header {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+
+        .Addmodal-title {
+            font-size: 1.25rem;
+            margin: 0;
+        }
+
+        .close {
+            background: transparent;
+            border: none;
+            font-size: 1.5rem;
+            color: #333;
+            cursor: pointer;
+        }
+
+        .Addmodal-body {
+            padding-top: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .btn-blue {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-blue:hover {
+            background-color: #0056b3;
+
+        }
+
+        .btn1 {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn1:hover {
+            background-color: #0056b3;
+
+        }
+    </style>
 </head>
 
 <body>
@@ -355,7 +479,7 @@ if ($result === FALSE) {
             <form action="" method="POST" enctype="multipart/form-data">
                 <label for="csvFile">Select CSV File:</label>
                 <input type="file" name="csvFile" id="csvFile" required>
-                <button type="submit" name="submit" class="btn btn-primary">Upload</button>
+                <button type="submit" name="submit" class="btn1 btn-primary">Upload</button>
             </form>
 
             <!-- Dropdown to select Active/Archived users -->
@@ -368,7 +492,9 @@ if ($result === FALSE) {
             </form>
 
             <h2><?php echo ucfirst($filter); ?> Students</h2>
-            <!-- Make the table responsive -->
+            <!-- Button to open the modal -->
+            <button type="button" class="btn1 btn-primary" style="" onclick="openModal()">Add Student Manually</button>
+
             <div class="table-wrapper">
                 <table class="table table-bordered">
                     <thead>
@@ -417,6 +543,19 @@ if ($result === FALSE) {
                         <?php endif; ?>
                     </tbody>
                 </table>
+                <?php
+                if (isset($_SESSION['success_message'])) {
+                    echo '<div class="success-message">' . $_SESSION['success_message'] . '</div>';
+                    unset($_SESSION['success_message']);
+                }
+
+                if (isset($_SESSION['error_message'])) {
+                    echo '<div class="error-message">' . $_SESSION['error_message'] . '</div>';
+                    unset($_SESSION['error_message']);
+                }
+                ?>
+
+
             </div>
         </div>
     </div>
@@ -503,6 +642,83 @@ if ($result === FALSE) {
         </div>
     </div>
 
+    <div class="Addmodal" id="addStudentModal">
+        <div class="Addmodal-dialog">
+            <div class="Addmodal-content">
+                <div class="Addmodal-header" style="display: flex; justify-content: space-between;">
+                    <h5 class="Addmodal-title" id="addStudentModalLabel">Add Student</h5>
+                    <button type="button" id="closeAddModal" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="Addmodal-body">
+                    <form method="POST" action="add_student.php" id="addStudentForm">
+                        <div class="form-group">
+                            <label for="fname">First Name</label>
+                            <input type="text" class="form-control" id="fname" name="fname" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="mname">Middle Name</label>
+                            <input type="text" class="form-control" id="mname" name="mname">
+                        </div>
+                        <div class="form-group">
+                            <label for="lname">Last Name</label>
+                            <input type="text" class="form-control" id="lname" name="lname" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="suffixname">Suffix Name</label>
+                            <input type="text" class="form-control" id="suffixname" name="suffixname">
+                        </div>
+                        <div class="form-group">
+                            <label for="contact_no">Contact Number</label>
+                            <input type="text" class="form-control" id="contact_no" name="contact_no" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="houseno">House Number</label>
+                            <input type="text" class="form-control" id="houseno" name="houseno">
+                        </div>
+                        <div class="form-group">
+                            <label for="street">Street</label>
+                            <input type="text" class="form-control" id="street" name="street">
+                        </div>
+                        <div class="form-group">
+                            <label for="barangay">Barangay</label>
+                            <input type="text" class="form-control" id="barangay" name="barangay">
+                        </div>
+                        <div class="form-group">
+                            <label for="city">City</label>
+                            <input type="text" class="form-control" id="city" name="city">
+                        </div>
+                        <div class="form-group">
+                            <label for="province">Province</label>
+                            <input type="text" class="form-control" id="province" name="province">
+                        </div>
+                        <div class="form-group">
+                            <label for="postalcode">Postal Code</label>
+                            <input type="text" class="form-control" id="postalcode" name="postalcode">
+                        </div>
+                        <div class="form-group">
+                            <label for="birthdate">Birthdate</label>
+                            <input type="date" class="form-control" id="birthdate" name="birthdate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="gender">Gender</label>
+                            <select class="form-control" id="gender" name="gender" required>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                        <button type="submit" class="btn btn-blue" name="submit">Add Student</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="main.js"></script>
     <script src="https://unpkg.com/ionicons@4.5.10-0/dist/ionicons.js"></script>
@@ -549,6 +765,22 @@ if ($result === FALSE) {
                 closeEditModal();
             }
         }
+        function openModal() {
+            document.getElementById("addStudentModal").style.display = "block";
+        }
+
+        // Close the modal
+        function closeModal() {
+            document.getElementById("addStudentModal").style.display = "none";
+        }
+
+        // Event listener for closing the modal when the close button is clicked
+        document.querySelector('#closeAddModal').addEventListener('click', function () {
+            closeModal();
+        });
+
+        // Optional: Close the modal if the user clicks outside the modal content
+
 
     </script>
 

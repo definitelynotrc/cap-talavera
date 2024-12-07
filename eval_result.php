@@ -248,33 +248,34 @@ ORDER BY u.lname ASC;
                 </tbody>
             </table>
         </div>
-        <!-- Modal for displaying evaluation results -->
-        <div id="evaluationResultsModal" class="modal">
-            <div class="modal-content">
-                <span class="close-btn">&times;</span>
-                <h3>Evaluation Results</h3>
-                <div id="evaluationResults"></div>
-                <div>
-                    <strong>Average Rating: </strong><span id="averageRating"></span>
-                </div>
+    </div>
+    <!-- Modal for displaying evaluation results -->
+    <div id="evaluationResultsModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h3>Evaluation Results</h3>
+            <div id="evaluationResults"></div>
+            <div>
+                <strong>Average Rating: </strong><span id="averageRating"></span>
             </div>
         </div>
-        <div id="evaluationResults">
-            <!-- Tables will be dynamically inserted here by JavaScript -->
-        </div>
+    </div>
+    <div id="evaluationResults">
+        <!-- Tables will be dynamically inserted here by JavaScript -->
+    </div>
 
-        <script src="main.js"></script>
+    <script src="main.js"></script>
 
-        <script src="https://unpkg.com/ionicons@4.5.10-0/dist/ionicons.js"></script>
-        <script>
-            $(document).ready(function () {
-                // Set up the event listener for dynamically loaded content
-                $(document).on('click', '.printBtn', function () {
-                    const table = $(this).closest('table')[0]; // Get the closest table to the print button
-                    const newWindow = window.open('', '', 'width=800,height=600');
+    <script src="https://unpkg.com/ionicons@4.5.10-0/dist/ionicons.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Set up the event listener for dynamically loaded content
+            $(document).on('click', '.printBtn', function () {
+                const table = $(this).closest('table')[0]; // Get the closest table to the print button
+                const newWindow = window.open('', '', 'width=800,height=600');
 
-                    // Define the print styles
-                    const styles = `
+                // Define the print styles
+                const styles = `
             <style>
                 body { font-family: Arial, sans-serif; }
                 .evaluator-name { display: none; } /* Hide evaluator's name during print */
@@ -283,92 +284,92 @@ ORDER BY u.lname ASC;
             </style>
         `;
 
-                    newWindow.document.write('<html><head><title>Print Evaluation</title>' + styles + '</head><body>');
-                    newWindow.document.write(table.outerHTML); // Print the closest table's HTML
-                    newWindow.document.write('</body></html>');
-                    newWindow.document.close();
-                    newWindow.print();
-                });
-
-                // Handle the view evaluations button click
-                $('.view-evaluations-btn').click(function () {
-                    const instructorId = $(this).data('instructor-id'); // Fetch the instructor ID from the button
-
-                    $.ajax({
-                        url: 'fetch_instructor_evaluations.php',
-                        method: 'POST',
-                        dataType: 'json',
-                        data: { instructor_id: instructorId },
-                        success: function (response) {
-                            if (response.error) {
-                                alert(response.error); // Handle any errors sent by PHP
-                            } else {
-                                $('#evaluation-details').html(response.evaluationTables); // Populate multiple tables
-                                $('#evaluation-details').show(); // Show the evaluation details section
-                            }
-                        },
-                        error: function (xhr, status, error) {
-                            console.error('AJAX Error:', status, error);
-                            console.error('Response:', xhr.responseText); // Log the raw response
-                            alert('Failed to fetch evaluation details.');
-                        }
-                    });
-                });
-
-                // Open the modal when the "Generate Results" button is clicked
-                $(document).on('click', '.generate-evaluations-btn', function () {
-                    const instructorId = $(this).data('instructor-id');
-
-                    // Show the modal
-                    document.getElementById('evaluationResultsModal').style.display = 'block';
-
-                    // Fetch evaluation results for this instructor
-                    fetchEvaluationResults(instructorId);
-                });
-
-                // Close the modal when the close button is clicked
-                $('.close-btn').click(function () {
-                    document.getElementById('evaluationResultsModal').style.display = 'none';
-                });
-
-                // Function to fetch evaluation results via AJAX
-                function fetchEvaluationResults(instructorId) {
-                    const xhr = new XMLHttpRequest();
-                    xhr.open('POST', 'fetch_evaluation_results.php', true);
-                    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-                    xhr.onreadystatechange = function () {
-                        if (xhr.readyState == 4 && xhr.status == 200) {
-                            const response = JSON.parse(xhr.responseText);
-                            if (response.error) {
-                                alert(response.error);
-                            } else {
-                                displayEvaluationResults(response);
-                            }
-                        }
-                    };
-                    xhr.send('instructor_id=' + instructorId);
-                }
-
-                // Function to display the evaluation results in the modal
-                function displayEvaluationResults(response) {
-                    const evaluationResultsDiv = document.getElementById('evaluationResults');
-                    const averageRatingSpan = document.getElementById('averageRating');
-
-                    // Clear previous results
-                    evaluationResultsDiv.innerHTML = '';
-
-                    let evalResultsHTML = '';
-                    response.evaluations.forEach((evaluation, index) => {
-                        evalResultsHTML += `Evaluation${index + 1}: ${evaluation.rating}<br>`;
-                    });
-
-                    evaluationResultsDiv.innerHTML = evalResultsHTML;
-                    averageRatingSpan.textContent = response.average_rating.toFixed(2);
-                }
+                newWindow.document.write('<html><head><title>Print Evaluation</title>' + styles + '</head><body>');
+                newWindow.document.write(table.outerHTML); // Print the closest table's HTML
+                newWindow.document.write('</body></html>');
+                newWindow.document.close();
+                newWindow.print();
             });
 
+            // Handle the view evaluations button click
+            $('.view-evaluations-btn').click(function () {
+                const instructorId = $(this).data('instructor-id'); // Fetch the instructor ID from the button
 
-        </script>
+                $.ajax({
+                    url: 'fetch_instructor_evaluations.php',
+                    method: 'POST',
+                    dataType: 'json',
+                    data: { instructor_id: instructorId },
+                    success: function (response) {
+                        if (response.error) {
+                            alert(response.error); // Handle any errors sent by PHP
+                        } else {
+                            $('#evaluation-details').html(response.evaluationTables); // Populate multiple tables
+                            $('#evaluation-details').show(); // Show the evaluation details section
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('AJAX Error:', status, error);
+                        console.error('Response:', xhr.responseText); // Log the raw response
+                        alert('Failed to fetch evaluation details.');
+                    }
+                });
+            });
+
+            // Open the modal when the "Generate Results" button is clicked
+            $(document).on('click', '.generate-evaluations-btn', function () {
+                const instructorId = $(this).data('instructor-id');
+
+                // Show the modal
+                document.getElementById('evaluationResultsModal').style.display = 'block';
+
+                // Fetch evaluation results for this instructor
+                fetchEvaluationResults(instructorId);
+            });
+
+            // Close the modal when the close button is clicked
+            $('.close-btn').click(function () {
+                document.getElementById('evaluationResultsModal').style.display = 'none';
+            });
+
+            // Function to fetch evaluation results via AJAX
+            function fetchEvaluationResults(instructorId) {
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', 'fetch_evaluation_results.php', true);
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState == 4 && xhr.status == 200) {
+                        const response = JSON.parse(xhr.responseText);
+                        if (response.error) {
+                            alert(response.error);
+                        } else {
+                            displayEvaluationResults(response);
+                        }
+                    }
+                };
+                xhr.send('instructor_id=' + instructorId);
+            }
+
+            // Function to display the evaluation results in the modal
+            function displayEvaluationResults(response) {
+                const evaluationResultsDiv = document.getElementById('evaluationResults');
+                const averageRatingSpan = document.getElementById('averageRating');
+
+                // Clear previous results
+                evaluationResultsDiv.innerHTML = '';
+
+                let evalResultsHTML = '';
+                response.evaluations.forEach((evaluation, index) => {
+                    evalResultsHTML += `Evaluation${index + 1}: ${evaluation.rating}<br>`;
+                });
+
+                evaluationResultsDiv.innerHTML = evalResultsHTML;
+                averageRatingSpan.textContent = response.average_rating.toFixed(2);
+            }
+        });
+
+
+    </script>
 </body>
 
 </html>

@@ -193,7 +193,7 @@ $instructors = $result->fetch_all(MYSQLI_ASSOC);
 </head>
 
 <body>
-    <div class="containerr">
+    <div class="container">
         <div class="navigation">
             <ul>
                 <li>

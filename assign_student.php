@@ -21,7 +21,7 @@ if (isset($_POST['assign_student'])) {
     $advisory_class_id = 1; // Replace with the actual logic if needed
 
     // Check if the student is already assigned to the subject
-    $checkAssignmentQuery = "SELECT * FROM class_teacher WHERE user_id = ? AND sub_id = ? AND teacher_type = 'student'";
+    $checkAssignmentQuery = "SELECT * FROM class_teacher WHERE user_id = ? AND sub_id = ? ";
     $checkAssignmentStmt = $conn->prepare($checkAssignmentQuery);
     $checkAssignmentStmt->bind_param("ii", $student_id, $sub_id);
     $checkAssignmentStmt->execute();
@@ -52,6 +52,7 @@ if (isset($_POST['assign_student'])) {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -60,14 +61,18 @@ if (isset($_POST['assign_student'])) {
     <style>
         /* Modal styles */
         .modal {
-            display: none; /* Hidden by default */
-            position: fixed; /* Stay in place */
-            z-index: 1; /* Sit on top */
+            display: none;
+            /* Hidden by default */
+            position: fixed;
+            /* Stay in place */
+            z-index: 1;
+            /* Sit on top */
             left: 0;
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.4); /* Black background with opacity */
+            background-color: rgba(0, 0, 0, 0.4);
+            /* Black background with opacity */
         }
 
         .modal-content {
@@ -123,146 +128,152 @@ if (isset($_POST['assign_student'])) {
         }
     </style>
 </head>
+
 <body>
 
-<div class="containerr">
-    <div class="navigation">
-        <ul>
-            <li><a href="index.php"><span class="icon"><ion-icon name="school"></ion-icon></span><span class="title">NEUST</span></a></li>
-            <li id="dashboard"><a href="dashboard.php"><span class="icon"><ion-icon name="home"></ion-icon></span><span class="title">Dashboard</span></a></li>
-            <li id="subject"><a href="subject.php"><span class="icon"><ion-icon name="desktop"></ion-icon></span><span class="title">Subject</span></a></li>
-            <li id="class"><a href="class.php"><span class="icon"><ion-icon name="desktop"></ion-icon></span><span class="title">Class</span></a></li>
-        </ul>
-    </div>
+    <div class="containerr">
+        <div class="navigation">
+            <ul>
+                <li><a href="index.php"><span class="icon"><ion-icon name="school"></ion-icon></span><span
+                            class="title">NEUST</span></a></li>
+                <li id="dashboard"><a href="dashboard.php"><span class="icon"><ion-icon
+                                name="home"></ion-icon></span><span class="title">Dashboard</span></a></li>
+                <li id="subject"><a href="subject.php"><span class="icon"><ion-icon
+                                name="desktop"></ion-icon></span><span class="title">Subject</span></a></li>
+                <li id="class"><a href="class.php"><span class="icon"><ion-icon name="desktop"></ion-icon></span><span
+                            class="title">Class</span></a></li>
+            </ul>
+        </div>
 
-    <div class="main">
-        <div class="topbar">
-            <div class="toggle">
-                <ion-icon name="menu"></ion-icon>
-            </div>
-            <div class="user">
-                <div class="dropdown">
-                    <button class="dropdown-btn">
-                        <img src="/img/admin.jpg" alt="User Profile" class="profile-img">
-                    </button>
-                    <div class="dropdown-content">
-                        <a href="#">Manage Account</a>
-                        <a href="logout.php">Logout</a>
+        <div class="main">
+            <div class="topbar">
+                <div class="toggle">
+                    <ion-icon name="menu"></ion-icon>
+                </div>
+                <div class="user">
+                    <div class="dropdown">
+                        <button class="dropdown-btn">
+                            <img src="/img/admin.jpg" alt="User Profile" class="profile-img">
+                        </button>
+                        <div class="dropdown-content">
+                            <a href="#">Manage Account</a>
+                            <a href="logout.php">Logout</a>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <h2>Assign Student to Subject</h2>
+            <h2>Assign Student to Subject</h2>
 
-        <!-- Button to Open Modal -->
-        <button id="openModalBtn">Add Student</button>
+            <!-- Button to Open Modal -->
+            <button id="openModalBtn">Add Student</button>
 
-        <!-- Modal -->
-        <div id="myModal" class="modal">
-            <div class="modal-content">
-                <span class="close" id="closeModalBtn">&times;</span>
-                <!-- Form to Assign Student to Subject -->
-                <form action="assign_student.php" method="POST">
-                    <div class="form-group">
-                        <label for="student_id">Select Student</label>
-                        <select name="student_id" id="student_id" required>
-                            <option value="">-- Select Student --</option>
-                            <?php
-                            // Fetch all users who are students (assuming 'role' column exists)
-                            $studentsQuery = "SELECT * FROM users WHERE role = 'student'";  // Filter users by 'student' role
-                            $studentsResult = $conn->query($studentsQuery);
-                            while ($student = $studentsResult->fetch_assoc()):
-                            ?>
-                                <option value="<?php echo $student['user_id']; ?>">
-                                    <?php echo $student['fname'] . ' ' . $student['lname']; ?>
-                                </option>
-                            <?php endwhile; ?>
-                        </select>
-                    </div>
+            <!-- Modal -->
+            <div id="myModal" class="modal">
+                <div class="modal-content">
+                    <span class="close" id="closeModalBtn">&times;</span>
+                    <!-- Form to Assign Student to Subject -->
+                    <form action="assign_student.php" method="POST">
+                        <div class="form-group">
+                            <label for="student_id">Select Student</label>
+                            <select name="student_id" id="student_id" required>
+                                <option value="">-- Select Student --</option>
+                                <?php
+                                // Fetch all users who are students (assuming 'role' column exists)
+                                $studentsQuery = "SELECT * FROM users WHERE role = 'student'";  // Filter users by 'student' role
+                                $studentsResult = $conn->query($studentsQuery);
+                                while ($student = $studentsResult->fetch_assoc()):
+                                    ?>
+                                    <option value="<?php echo $student['user_id']; ?>">
+                                        <?php echo $student['fname'] . ' ' . $student['lname']; ?>
+                                    </option>
+                                <?php endwhile; ?>
+                            </select>
+                        </div>
 
-                    <div class="form-group">
-                        <label for="sub_id">Select Subject</label>
-                        <select name="sub_id" id="sub_id" required>
-                            <option value="">-- Select Subject --</option>
-                            <?php
-                            // Fetch all subjects
-                            $subjectsQuery = "SELECT * FROM subject";
-                            $subjectsResult = $conn->query($subjectsQuery);
-                            while ($subject = $subjectsResult->fetch_assoc()):
-                            ?>
-                                <option value="<?php echo $subject['sub_id']; ?>">
-                                    <?php echo $subject['subjects']; ?>
-                                </option>
-                            <?php endwhile; ?>
-                        </select>
-                    </div>
+                        <div class="form-group">
+                            <label for="sub_id">Select Subject</label>
+                            <select name="sub_id" id="sub_id" required>
+                                <option value="">-- Select Subject --</option>
+                                <?php
+                                // Fetch all subjects
+                                $subjectsQuery = "SELECT * FROM subject";
+                                $subjectsResult = $conn->query($subjectsQuery);
+                                while ($subject = $subjectsResult->fetch_assoc()):
+                                    ?>
+                                    <option value="<?php echo $subject['sub_id']; ?>">
+                                        <?php echo $subject['subjects']; ?>
+                                    </option>
+                                <?php endwhile; ?>
+                            </select>
+                        </div>
 
-                    <button type="submit" name="assign_student">Assign Student</button>
-                </form>
+                        <button type="submit" name="assign_student">Assign Student</button>
+                    </form>
+                </div>
             </div>
-        </div>
 
-        <h3>Current Assignments</h3>
-        <!-- Display Assigned Students -->
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Student</th>
-                    <th>Subject</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php
-                // Fetch existing student-subject assignments
-                $assignmentsQuery = "
+            <h3>Current Assignments</h3>
+            <!-- Display Assigned Students -->
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Subject</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php
+                    // Fetch existing student-subject assignments
+                    $assignmentsQuery = "
                     SELECT st.user_id, su.sub_id, st.fname, st.lname, su.subjects
                     FROM class_teacher ct
                     JOIN users st ON ct.user_id = st.user_id
                     JOIN subject su ON ct.sub_id = su.sub_id
                     WHERE ct.teacher_type = 'student'
                 ";
-                $assignmentsResult = $conn->query($assignmentsQuery);
-                while ($assignment = $assignmentsResult->fetch_assoc()):
-                ?>
-                    <tr>
-                        <td><?php echo $assignment['fname'] . ' ' . $assignment['lname']; ?></td>
-                        <td><?php echo $assignment['subjects']; ?></td>
-                    </tr>
-                <?php endwhile; ?>
-            </tbody>
-        </table>
+                    $assignmentsResult = $conn->query($assignmentsQuery);
+                    while ($assignment = $assignmentsResult->fetch_assoc()):
+                        ?>
+                        <tr>
+                            <td><?php echo $assignment['fname'] . ' ' . $assignment['lname']; ?></td>
+                            <td><?php echo $assignment['subjects']; ?></td>
+                        </tr>
+                    <?php endwhile; ?>
+                </tbody>
+            </table>
+        </div>
     </div>
-</div>
 
-<script src="main.js"></script>
-<script src="https://unpkg.com/ionicons@4.5.10-0/dist/ionicons.js"></script>
-<script>
-    // Get the modal
-    var modal = document.getElementById("myModal");
+    <script src="main.js"></script>
+    <script src="https://unpkg.com/ionicons@4.5.10-0/dist/ionicons.js"></script>
+    <script>
+        // Get the modal
+        var modal = document.getElementById("myModal");
 
-    // Get the button that opens the modal
-    var btn = document.getElementById("openModalBtn");
+        // Get the button that opens the modal
+        var btn = document.getElementById("openModalBtn");
 
-    // Get the <span> element that closes the modal
-    var span = document.getElementById("closeModalBtn");
+        // Get the <span> element that closes the modal
+        var span = document.getElementById("closeModalBtn");
 
-    // When the user clicks the button, open the modal
-    btn.onclick = function() {
-        modal.style.display = "block";
-    }
+        // When the user clicks the button, open the modal
+        btn.onclick = function () {
+            modal.style.display = "block";
+        }
 
-    // When the user clicks on <span> (x), close the modal
-    span.onclick = function() {
-        modal.style.display = "none";
-    }
-
-    // When the user clicks anywhere outside of the modal, close it
-    window.onclick = function(event) {
-        if (event.target == modal) {
+        // When the user clicks on <span> (x), close the modal
+        span.onclick = function () {
             modal.style.display = "none";
         }
-    }
-</script>
+
+        // When the user clicks anywhere outside of the modal, close it
+        window.onclick = function (event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+    </script>
 </body>
+
 </html>

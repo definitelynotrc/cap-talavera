@@ -55,7 +55,7 @@ try {
             ':isActive' => $isActive,
         ]);
 
-        echo "<script>alert('Class assigned successfully!'); window.location.href = '';</script>";
+        echo "<script>alert('Class assigned successfully!'); window.location.href = 'manage_class.php';</script>";
     }
 } catch (PDOException $e) {
     die("Connection failed: " . $e->getMessage());
