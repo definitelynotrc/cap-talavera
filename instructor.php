@@ -348,7 +348,7 @@ if ($result === FALSE) {
             <ul>
                 <li class="logo">
 
-                    <a href="index.php">
+                    <a href="">
                         <span class="custom-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"
                                 xmlns="http://www.w3.org/2000/svg">
                                 <path
@@ -538,7 +538,7 @@ if ($result === FALSE) {
                         </span><span class="title">Rate</span></a>
                 </li>
                 <li id="evaluation">
-                    <a href="evaluation.php"><span class="icon"><svg width="24" height="24" viewBox="0 0 24 24"
+                    <a href="eval_result.php"><span class="icon"><svg width="24" height="24" viewBox="0 0 24 24"
                                 fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path
                                     d="M4.26001 11.0199V15.9899C4.26001 17.8099 4.26001 17.8099 5.98001 18.9699L10.71 21.6999C11.42 22.1099 12.58 22.1099 13.29 21.6999L18.02 18.9699C19.74 17.8099 19.74 17.8099 19.74 15.9899V11.0199C19.74 9.19994 19.74 9.19994 18.02 8.03994L13.29 5.30994C12.58 4.89994 11.42 4.89994 10.71 5.30994L5.98001 8.03994C4.26001 9.19994 4.26001 9.19994 4.26001 11.0199Z"
@@ -590,37 +590,37 @@ if ($result === FALSE) {
                     </thead>
                     <tbody>
                         <?php if ($result->num_rows > 0): ?>
-                            <?php while ($row = $result->fetch_assoc()): ?>
-                                <tr>
-                                    <td><?php echo $row['fname'] . ' ' . $row['mname'] . ' ' . $row['lname'] . ' ' . $row['suffixname']; ?>
-                                    </td>
-                                    <td><?php echo $row['contact_no']; ?></td>
-                                    <td><?php echo $row['gender']; ?></td>
-                                    <td><?php echo $row['email']; ?></td>
-                                    <td><?php echo $row['role']; ?></td>
-                                    <td>
-                                        <!-- Action buttons -->
-                                        <?php if ($row['is_archived'] == 0): ?>
-                                            <button class="btn btn-success edit-btn"
-                                                onclick="openEditModal(<?php echo $row['user_id']; ?>, '<?php echo $row['fname']; ?>', '<?php echo $row['mname']; ?>', '<?php echo $row['lname']; ?>', '<?php echo $row['suffixname']; ?>',  '<?php echo $row['contact_no']; ?>', '<?php echo $row['houseno']; ?>', '<?php echo $row['street']; ?>', '<?php echo $row['barangay']; ?>', '<?php echo $row['city']; ?>', '<?php echo $row['province']; ?>', '<?php echo $row['postalcode']; ?>', '<?php echo $row['birthdate']; ?>', '<?php echo $row['gender']; ?>', '<?php echo $row['email']; ?>', '<?php echo $row['role']; ?>')">Edit</button>
+                                <?php while ($row = $result->fetch_assoc()): ?>
+                                        <tr>
+                                            <td><?php echo $row['fname'] . ' ' . $row['mname'] . ' ' . $row['lname'] . ' ' . $row['suffixname']; ?>
+                                            </td>
+                                            <td><?php echo $row['contact_no']; ?></td>
+                                            <td><?php echo $row['gender']; ?></td>
+                                            <td><?php echo $row['email']; ?></td>
+                                            <td><?php echo $row['role']; ?></td>
+                                            <td>
+                                                <!-- Action buttons -->
+                                                <?php if ($row['is_archived'] == 0): ?>
+                                                        <button class="btn btn-success edit-btn"
+                                                            onclick="openEditModal(<?php echo $row['user_id']; ?>, '<?php echo $row['fname']; ?>', '<?php echo $row['mname']; ?>', '<?php echo $row['lname']; ?>', '<?php echo $row['suffixname']; ?>',  '<?php echo $row['contact_no']; ?>', '<?php echo $row['houseno']; ?>', '<?php echo $row['street']; ?>', '<?php echo $row['barangay']; ?>', '<?php echo $row['city']; ?>', '<?php echo $row['province']; ?>', '<?php echo $row['postalcode']; ?>', '<?php echo $row['birthdate']; ?>', '<?php echo $row['gender']; ?>', '<?php echo $row['email']; ?>', '<?php echo $row['role']; ?>')">Edit</button>
 
 
-                                            <a href="instructor.php?archive=true&user_id=<?php echo $row['user_id']; ?>">
-                                                <button class="btn btn-danger archive-btn">Archive</button>
-                                            </a>
-                                        <?php elseif ($row['is_archived'] == 1): ?>
-                                            <a href="instructor.php?restore=true&user_id=<?php echo $row['user_id']; ?>">
-                                                <button class="btn btn-success edit-btn">Restore</button>
-                                            </a>
-                                        <?php endif; ?>
+                                                        <a href="instructor.php?archive=true&user_id=<?php echo $row['user_id']; ?>">
+                                                            <button class="btn btn-danger archive-btn">Archive</button>
+                                                        </a>
+                                                <?php elseif ($row['is_archived'] == 1): ?>
+                                                        <a href="instructor.php?restore=true&user_id=<?php echo $row['user_id']; ?>">
+                                                            <button class="btn btn-success edit-btn">Restore</button>
+                                                        </a>
+                                                <?php endif; ?>
 
-                                    </td>
-                                </tr>
-                            <?php endwhile; ?>
+                                            </td>
+                                        </tr>
+                                <?php endwhile; ?>
                         <?php else: ?>
-                            <tr>
-                                <td colspan="6">No instructors found</td>
-                            </tr>
+                                <tr>
+                                    <td colspan="6">No instructors found</td>
+                                </tr>
                         <?php endif; ?>
                     </tbody>
                 </table>

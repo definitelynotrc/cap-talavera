@@ -200,14 +200,14 @@ $instructors = $result->fetch_all(MYSQLI_ASSOC);
         <div class="navigation">
             <ul>
                 <li>
-                    <a href="index.php">
+                    <a href="">
                         <span class="icon"><ion-icon name="school"></ion-icon></span>
                         <span class="title">NEUST</span>
                     </a>
                 </li>
 
                 <li id="dashboard">
-                    <a href="evaluation.php"><span class="icon"><ion-icon name="desktop"></ion-icon></span><span
+                    <a href="eval_result.php"><span class="icon"><ion-icon name="desktop"></ion-icon></span><span
                             class="title">Evaluation</span></a>
                 </li>
 
@@ -269,14 +269,14 @@ WHERE ct.class_teacher_id = ?
 
                     // Check if there are ratings available
                     if ($result->num_rows > 0): ?>
-                        <p><strong>Ratings:</strong></p>
-                        <ul>
-                            <?php while ($row = $result->fetch_assoc()): ?>
-                                <li><?php echo htmlspecialchars($row['rates'] . ' - ' . $row['rate_name']); ?></li>
-                            <?php endwhile; ?>
-                        </ul>
+                            <p><strong>Ratings:</strong></p>
+                            <ul>
+                                <?php while ($row = $result->fetch_assoc()): ?>
+                                        <li><?php echo htmlspecialchars($row['rates'] . ' - ' . $row['rate_name']); ?></li>
+                                <?php endwhile; ?>
+                            </ul>
                     <?php else: ?>
-                        <p>No ratings available.</p>
+                            <p>No ratings available.</p>
                     <?php endif;
                     ?>
                     <h4>You are now Evaluating <span
@@ -370,18 +370,18 @@ WHERE ct.class_teacher_id = ?
                             $disabledClass = ($evaluated === 'true') ? 'disabled' : '';
 
                             ?>
-                            <a href="instructor_evaluation.php?class_teacher_id=<?php echo $row['class_teacher_id']; ?>"
-                                class="instructor <?php echo $disabledClass; ?>" data-evaluated="<?php echo $evaluated; ?>"
-                                data-instructor-id="<?php echo $row['class_teacher_id']; ?>">
-                                <div class="instructorDetails">
-                                    <div>
-                                        <h3><?php echo $fullName; ?></h3>
-                                        <p><?php echo htmlspecialchars($row['teacher_type']); ?></p>
-                                        <span><?php echo $subjectName; ?></span>
-                                    </div>
-                                </div>
-                            </a>
-                            <?php
+                                    <a href="instructor_evaluation.php?class_teacher_id=<?php echo $row['class_teacher_id']; ?>"
+                                        class="instructor <?php echo $disabledClass; ?>" data-evaluated="<?php echo $evaluated; ?>"
+                                        data-instructor-id="<?php echo $row['class_teacher_id']; ?>">
+                                        <div class="instructorDetails">
+                                            <div>
+                                                <h3><?php echo $fullName; ?></h3>
+                                                <p><?php echo htmlspecialchars($row['teacher_type']); ?></p>
+                                                <span><?php echo $subjectName; ?></span>
+                                            </div>
+                                        </div>
+                                    </a>
+                                    <?php
                         }
                     } else {
                         echo '<p>No instructors available for evaluation.</p>';

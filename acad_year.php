@@ -278,7 +278,7 @@ if (isset($_GET['ay_id'])) {
             <ul>
                 <li class="logo">
 
-                    <a href="index.php">
+                    <a href="">
                         <span class="custom-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"
                                 xmlns="http://www.w3.org/2000/svg">
                                 <path
@@ -468,7 +468,7 @@ if (isset($_GET['ay_id'])) {
                         </span><span class="title">Rate</span></a>
                 </li>
                 <li id="evaluation">
-                    <a href="evaluation.php"><span class="icon"><svg width="24" height="24" viewBox="0 0 24 24"
+                    <a href="eval_result.php"><span class="icon"><svg width="24" height="24" viewBox="0 0 24 24"
                                 fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path
                                     d="M4.26001 11.0199V15.9899C4.26001 17.8099 4.26001 17.8099 5.98001 18.9699L10.71 21.6999C11.42 22.1099 12.58 22.1099 13.29 21.6999L18.02 18.9699C19.74 17.8099 19.74 17.8099 19.74 15.9899V11.0199C19.74 9.19994 19.74 9.19994 18.02 8.03994L13.29 5.30994C12.58 4.89994 11.42 4.89994 10.71 5.30994L5.98001 8.03994C4.26001 9.19994 4.26001 9.19994 4.26001 11.0199Z"
@@ -516,55 +516,55 @@ if (isset($_GET['ay_id'])) {
                 </thead>
                 <tbody>
                     <?php if (!empty($academicYears)): ?>
-                        <?php foreach ($academicYears as $acadYear): ?>
-                            <tr>
-                                <td><?php echo htmlspecialchars($acadYear['year_start']); ?></td>
-                                <td><?php echo $acadYear['isActive'] == 1 ? 'Active' : 'Archived'; ?></td>
-                                <td>
-                                    <a href="?ay_id=<?php echo $acadYear['ay_id']; ?>" class="btn edit-btn">Edit</a>
-                                    <a href="?archive=true&ay_id=<?php echo $acadYear['ay_id']; ?>"
-                                        class="btn archive-btn">Archive</a>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
+                            <?php foreach ($academicYears as $acadYear): ?>
+                                    <tr>
+                                        <td><?php echo htmlspecialchars($acadYear['year_start']); ?></td>
+                                        <td><?php echo $acadYear['isActive'] == 1 ? 'Active' : 'Archived'; ?></td>
+                                        <td>
+                                            <a href="?ay_id=<?php echo $acadYear['ay_id']; ?>" class="btn edit-btn">Edit</a>
+                                            <a href="?archive=true&ay_id=<?php echo $acadYear['ay_id']; ?>"
+                                                class="btn archive-btn">Archive</a>
+                                        </td>
+                                    </tr>
+                            <?php endforeach; ?>
                     <?php else: ?>
-                        <tr>
-                            <td colspan="3">No active academic years found.</td>
-                        </tr>
+                            <tr>
+                                <td colspan="3">No active academic years found.</td>
+                            </tr>
                     <?php endif; ?>
                 </tbody>
             </table>
 
             <!-- Archived Academic Years Section -->
             <?php if (isset($_GET['archived']) && $_GET['archived'] == 'true'): ?>
-                <h2>Archived Academic Years</h2>
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>Year Start</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if (!empty($archivedAcademicYears)): ?>
-                            <?php foreach ($archivedAcademicYears as $acadYear): ?>
-                                <tr>
-                                    <td><?php echo htmlspecialchars($acadYear['year_start']); ?></td>
-                                    <td><?php echo $acadYear['isActive'] == 1 ? 'Active' : 'Archived'; ?></td>
-                                    <td>
-                                        <a href="?restore=true&ay_id=<?php echo $acadYear['ay_id']; ?>"
-                                            class="btn restore-btn">Restore</a>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php else: ?>
+                    <h2>Archived Academic Years</h2>
+                    <table class="table table-bordered">
+                        <thead>
                             <tr>
-                                <td colspan="3">No archived academic years found.</td>
+                                <th>Year Start</th>
+                                <th>Status</th>
+                                <th>Actions</th>
                             </tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            <?php if (!empty($archivedAcademicYears)): ?>
+                                    <?php foreach ($archivedAcademicYears as $acadYear): ?>
+                                            <tr>
+                                                <td><?php echo htmlspecialchars($acadYear['year_start']); ?></td>
+                                                <td><?php echo $acadYear['isActive'] == 1 ? 'Active' : 'Archived'; ?></td>
+                                                <td>
+                                                    <a href="?restore=true&ay_id=<?php echo $acadYear['ay_id']; ?>"
+                                                        class="btn restore-btn">Restore</a>
+                                                </td>
+                                            </tr>
+                                    <?php endforeach; ?>
+                            <?php else: ?>
+                                    <tr>
+                                        <td colspan="3">No archived academic years found.</td>
+                                    </tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
             <?php endif; ?>
         </div>
     </div>
@@ -576,7 +576,7 @@ if (isset($_GET['ay_id'])) {
             <form action="acad_year.php" method="POST">
                 <!-- Hidden ID field for editing -->
                 <?php if ($academicYearToEdit): ?>
-                    <input type="hidden" name="ay_id" value="<?php echo $academicYearToEdit['ay_id']; ?>">
+                        <input type="hidden" name="ay_id" value="<?php echo $academicYearToEdit['ay_id']; ?>">
                 <?php endif; ?>
 
                 <div class="form-group">

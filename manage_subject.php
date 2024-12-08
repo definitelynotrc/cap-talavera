@@ -210,7 +210,7 @@ while ($assignment = $assignmentsResult->fetch_assoc()) {
             <ul>
                 <li class="logo">
 
-                    <a href="index.php">
+                    <a href="">
                         <span class="custom-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"
                                 xmlns="http://www.w3.org/2000/svg">
                                 <path
@@ -400,7 +400,7 @@ while ($assignment = $assignmentsResult->fetch_assoc()) {
                         </span><span class="title">Rate</span></a>
                 </li>
                 <li id="evaluation">
-                    <a href="evaluation.php"><span class="icon"><svg width="24" height="24" viewBox="0 0 24 24"
+                    <a href="eval_result.php"><span class="icon"><svg width="24" height="24" viewBox="0 0 24 24"
                                 fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path
                                     d="M4.26001 11.0199V15.9899C4.26001 17.8099 4.26001 17.8099 5.98001 18.9699L10.71 21.6999C11.42 22.1099 12.58 22.1099 13.29 21.6999L18.02 18.9699C19.74 17.8099 19.74 17.8099 19.74 15.9899V11.0199C19.74 9.19994 19.74 9.19994 18.02 8.03994L13.29 5.30994C12.58 4.89994 11.42 4.89994 10.71 5.30994L5.98001 8.03994C4.26001 9.19994 4.26001 9.19994 4.26001 11.0199Z"
@@ -435,9 +435,9 @@ while ($assignment = $assignmentsResult->fetch_assoc()) {
                                 <select name="user_id" id="user_id" required>
                                     <option value="">-- Select Instructor --</option>
                                     <?php while ($instructor = $instructorsResult->fetch_assoc()): ?>
-                                        <option value="<?php echo htmlspecialchars($instructor['user_id']); ?>">
-                                            <?php echo htmlspecialchars($instructor['fname'] . ' ' . $instructor['lname']) . ' (' . htmlspecialchars($instructor['department']) . ')'; ?>
-                                        </option>
+                                            <option value="<?php echo htmlspecialchars($instructor['user_id']); ?>">
+                                                <?php echo htmlspecialchars($instructor['fname'] . ' ' . $instructor['lname']) . ' (' . htmlspecialchars($instructor['department']) . ')'; ?>
+                                            </option>
                                     <?php endwhile; ?>
                                 </select>
                             </div>
@@ -447,10 +447,10 @@ while ($assignment = $assignmentsResult->fetch_assoc()) {
                                 <select name="sub_id" id="sub_id" required>
                                     <option value="">-- Select Subject --</option>
                                     <?php while ($subject = $subjectsResult->fetch_assoc()): ?>
-                                        <option value="<?php echo htmlspecialchars($subject['sub_id']); ?>">
-                                            <?php echo htmlspecialchars($subject['subjects']) . ' (' . htmlspecialchars($subject['semesters']) . ') (' . htmlspecialchars($subject['department']) . ')'; ?>
+                                            <option value="<?php echo htmlspecialchars($subject['sub_id']); ?>">
+                                                <?php echo htmlspecialchars($subject['subjects']) . ' (' . htmlspecialchars($subject['semesters']) . ') (' . htmlspecialchars($subject['department']) . ')'; ?>
 
-                                        </option>
+                                            </option>
                                     <?php endwhile; ?>
                                 </select>
                             </div>
@@ -462,9 +462,9 @@ while ($assignment = $assignmentsResult->fetch_assoc()) {
                                 <select name="advisory_class_id" id="advisory_class_id" required>
                                     <option value="">-- Select Class --</option>
                                     <?php while ($class = $classesResult->fetch_assoc()): ?>
-                                        <option value="<?php echo $class['class_id']; ?>">
-                                            <?php echo $class['year_level']; ?>
-                                        </option>
+                                            <option value="<?php echo $class['class_id']; ?>">
+                                                <?php echo $class['year_level']; ?>
+                                            </option>
                                     <?php endwhile; ?>
                                 </select>
                             </div>
@@ -495,12 +495,12 @@ while ($assignment = $assignmentsResult->fetch_assoc()) {
                     </thead>
                     <tbody>
                         <?php foreach ($assignments as $assignment): ?>
-                            <tr>
-                                <td><?php echo htmlspecialchars($assignment['fname'] . ' ' . $assignment['lname']); ?></td>
-                                <td><?php echo htmlspecialchars($assignment['subjects']); ?></td>
-                                <td><?php echo htmlspecialchars($assignment['year_level']); ?></td>
-                                <td><?php echo htmlspecialchars($assignment['teacher_type']); ?></td>
-                            </tr>
+                                <tr>
+                                    <td><?php echo htmlspecialchars($assignment['fname'] . ' ' . $assignment['lname']); ?></td>
+                                    <td><?php echo htmlspecialchars($assignment['subjects']); ?></td>
+                                    <td><?php echo htmlspecialchars($assignment['year_level']); ?></td>
+                                    <td><?php echo htmlspecialchars($assignment['teacher_type']); ?></td>
+                                </tr>
                         <?php endforeach; ?>
                     </tbody>
                 </table>
