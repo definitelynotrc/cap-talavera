@@ -81,7 +81,7 @@ if (isset($_POST['submit']) && isset($_FILES['csvFile'])) {
                 }
 
                 // Check if the role is "Instructor"
-                if ($data[13] !== 'Student') {
+                if ($data[13] !== 'admin') {
                     $_SESSION['error_message'] = "Invalid role found for user {$data[0]} {$data[2]}: {$data[13]}. Skipping this user.";
                     continue; // Skip users who are not instructors
                 }
@@ -261,7 +261,7 @@ if (isset($_GET['archive'])) {
     $stmt->bind_param("i", $user_id);
     $stmt->execute();
     $stmt->close();
-    header("Location: student.php"); // Redirect to avoid resubmitting the form
+    header("Location: admin.php"); // Redirect to avoid resubmitting the form
     exit();
 }
 
@@ -274,7 +274,7 @@ if (isset($_GET['restore'])) {
     $stmt->bind_param("i", $user_id);
     $stmt->execute();
     $stmt->close();
-    header("Location: student.php"); // Redirect to avoid resubmitting the form
+    header("Location: admin.php"); // Redirect to avoid resubmitting the form
     exit();
 }
 
@@ -282,10 +282,10 @@ if (isset($_GET['restore'])) {
 $filter = isset($_GET['status']) ? $_GET['status'] : 'active';
 if ($filter == 'archived') {
     // Retrieve archived students
-    $sql = "SELECT * FROM users WHERE is_archived = 1 AND role = 'student'";
+    $sql = "SELECT * FROM users WHERE is_archived = 1 AND role = 'Admin'";
 } else {
     // Retrieve active students
-    $sql = "SELECT * FROM users WHERE is_archived = 0 AND role = 'student'";
+    $sql = "SELECT * FROM users WHERE is_archived = 0 AND role = 'Admin'";
 }
 $result = $conn->query($sql);
 
@@ -308,7 +308,6 @@ if ($result === FALSE) {
 </head>
 
 <body>
-
     <nav class="topbar">
 
         <div class="toggle" onclick="toggleSidebar()">
@@ -340,6 +339,7 @@ if ($result === FALSE) {
         </div>
     </nav>
     <div class="container">
+
         <aside class="navigation">
             <ul>
                 <li class="logo">
@@ -552,25 +552,31 @@ if ($result === FALSE) {
             </a>
         </aside>
         <div class="main">
-            <h2>Upload CSV File to Users Table</h2>
-            <form action="" method="POST" enctype="multipart/form-data">
-                <label for="csvFile">Select CSV File:</label>
-                <input type="file" name="csvFile" id="csvFile" required>
-                <button type="submit" name="submit" class="btn1 btn-primary">Upload</button>
-            </form>
+            <div>
+                <h2>Upload CSV File to Users Table</h2>
+                <form action="" method="POST" enctype="multipart/form-data">
+                    <label for="csvFile">Select CSV File:</label>
+                    <input type="file" name="csvFile" id="csvFile" required>
+                    <button type="submit" name="submit" class="btn1 btn-primary">Upload</button>
+                </form>
+            </div>
 
-            <!-- Dropdown to select Active/Archived users -->
-            <form method="GET" style="margin-bottom: 10px;">
-                <select name="status" style="width: 20%;" onchange="this.form.submit()">
-                    <option value="active" <?php echo ($filter == 'active') ? 'selected' : ''; ?>>Active Students</option>
-                    <option value="archived" <?php echo ($filter == 'archived') ? 'selected' : ''; ?>>Archived Students
-                    </option>
-                </select>
-            </form>
 
-            <h2><?php echo ucfirst($filter); ?> Students</h2>
+            <h2><?php echo ucfirst($filter); ?> Admins</h2>
             <!-- Button to open the modal -->
-            <button type="button" class="btn1 btn-primary" style="" onclick="openModal()">Add Student Manually</button>
+            <button type="button" class="btn1 btn-primary" style="" onclick="openModal()">Add Admin
+                Manually</button>
+            <div>
+                <form method="GET" style="margin-bottom: 10px;">
+                    <select style="width: 20%;" name="status" onchange="this.form.submit()">
+                        <option value="active" <?php echo ($filter == 'active') ? 'selected' : ''; ?>>Active Admin
+                        </option>
+                        <option value="archived" <?php echo ($filter == 'archived') ? 'selected' : ''; ?>>Archived Admin
+                        </option>
+                    </select>
+                </form>
+            </div>
+
 
             <div class="table-wrapper">
                 <table class="table table-bordered">
@@ -635,7 +641,9 @@ if ($result === FALSE) {
 
             </div>
         </div>
+
     </div>
+
 
 
 
@@ -729,7 +737,7 @@ if ($result === FALSE) {
                     </button>
                 </div>
                 <div class="Addmodal-body">
-                    <form method="POST" action="add_student.php" id="addStudentForm">
+                    <form method="POST" action="add_admin.php" id="addStudentForm">
                         <div class="form-group">
                             <label for="fname">First Name</label>
                             <input type="text" class="form-control" id="fname" name="fname" required>
@@ -796,9 +804,9 @@ if ($result === FALSE) {
             </div>
         </div>
     </div>
+    <!-- 
+    <script src="main.js"></script> -->
 
-    <!-- <script src="main.js"></script>
-    <script src="https://unpkg.com/ionicons@4.5.10-0/dist/ionicons.js"></script> -->
 
 
     <script>
@@ -832,7 +840,7 @@ if ($result === FALSE) {
             const sidebar = document.querySelector('.navigation');
             sidebar.classList.toggle('collapsed');
         }
-        // JavaScript to open the modal and populate the user data for editing
+
         function openEditModal(userId, fname, mname, lname, suffixname, contact, houseno, street, barangay, city, province, postalcode, birthdate, gender, email, role,) {
             document.getElementById('editUserId').value = userId;
             document.getElementById('editFname').value = fname;
@@ -885,6 +893,10 @@ if ($result === FALSE) {
         document.querySelector('#closeAddModal').addEventListener('click', function () {
             closeModal();
         });
+
+
+
+
 
     </script>
 

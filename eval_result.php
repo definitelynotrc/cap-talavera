@@ -376,27 +376,15 @@ ORDER BY u.lname ASC;
                     // Loop through the ratings for each question and count them
                     const counts = evaluation.rating_counts;
                     evalResultsHTML += `
-            5 - ${counts[5]}<br>
-            4 - ${counts[4]}<br>
-            3 - ${counts[3]}<br>
-            2 - ${counts[2]}<br>
-            1 - ${counts[1]}<br><br>
+             Outstanding - ${counts[5]}<br>
+           Very Satisfactory - ${counts[4]}<br>
+            Satisfactory- ${counts[3]}<br>
+            Poor- ${counts[2]}<br>
+             Very Poor - ${counts[1]}<br><br>
         `;
                 });
 
-                // Now, generate the HTML for rating counts
-                evalResultsHTML += '<h4>Rating Counts per Question:</h4>';
-                Object.keys(ratingCounts).forEach((questionId) => {
-                    evalResultsHTML += `<strong>Question ${questionId}</strong>:<br>`;
-                    const counts = ratingCounts[questionId];
-                    evalResultsHTML += `
-            5 - ${counts[5]}<br>
-            4 - ${counts[4]}<br>
-            3 - ${counts[3]}<br>
-            2 - ${counts[2]}<br>
-            1 - ${counts[1]}<br><br>
-        `;
-                });
+
 
                 // Display the evaluation results in the modal
                 evaluationResultsDiv.innerHTML = evalResultsHTML;
