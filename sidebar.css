@@ -368,6 +368,7 @@ h2,
 input[type="text"],
 input[type="email"],
 input[type="date"],
+input[type="number"],
 select {
   width: 100%;
   padding: 10px;
@@ -381,6 +382,7 @@ select {
 input[type="text"]:focus,
 input[type="email"]:focus,
 input[type="date"]:focus,
+input[type="number"]:focus,
 select:focus {
   border-color: #007bff;
   outline: none;
@@ -528,7 +530,7 @@ button.btn-success.edit-btn:hover {
 
 /* Archive and Restore Buttons */
 button.archive-btn {
-  background-color: #ffc107;
+  background-color: red;
   color: white;
 }
 
