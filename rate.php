@@ -443,10 +443,6 @@ if (isset($_GET['rate_id'])) {
             </a>
         </aside>
         <div class="main">
-
-
-
-
             <div style="display:flex ; flex-direction: row; width: 100%; justify-content: space-between;">
                 <h2>Rate List</h2>
                 <button id="addRateBtn" class="add-btn">Add Rate</button>

@@ -38,24 +38,6 @@ if ($row = $result->fetch_assoc()) {
 }
 
 
-$instructorQuery = "
-    SELECT 
-        u.user_id, 
-        u.fName, 
-        u.lName, 
-        ct.teacher_type, 
-        GROUP_CONCAT(DISTINCT s.subjects ORDER BY s.subjects SEPARATOR ', ') AS subjects 
-    FROM users u
-    JOIN class_teacher ct ON u.user_id = ct.user_id
-    JOIN subject s ON ct.sub_id = s.sub_id
-    JOIN user_dep ud ON u.user_id = ud.user_id
-    WHERE ud.dep_id = ? AND u.role = 'Instructor'
-    GROUP BY u.user_id, u.fName, u.lName, ct.teacher_type";
-$stmt = $conn->prepare($instructorQuery);
-$stmt->bind_param('i', $userDepId);
-$stmt->execute();
-$result = $stmt->get_result();
-$instructors = $result->fetch_all(MYSQLI_ASSOC);
 
 
 
@@ -111,13 +93,13 @@ $instructors = $result->fetch_all(MYSQLI_ASSOC);
 
         .evaluationContainer {
             margin: 20px;
-            display: flex;
-            flex-direction: row;
+
+
         }
 
         .evalFormContainer {
             border: solid 1px black;
-            width: 80%;
+            width: 100%;
             margin-right: 20px;
             padding: 20px;
             border-radius: 8px;
@@ -293,8 +275,91 @@ WHERE ct.class_teacher_id = ?
                 }
             }
             ?>
-            <div class="evaluationContainer">
-                <div class="evalFormContainer">
+            <div class="evaluationContainer" style="display: flex; flex-direction: column;">
+
+
+                <div class="custom-instructor-container">
+                    <h1>Instructor List</h1>
+                    <?php
+                    $instructorQuery = "
+        SELECT 
+            u.user_id, 
+            u.fName, 
+            u.lName, 
+            ct.teacher_type,
+            ct.class_teacher_id, 
+            GROUP_CONCAT(DISTINCT s.subjects ORDER BY s.subjects SEPARATOR ', ') AS subjects 
+        FROM users u
+        JOIN class_teacher ct ON u.user_id = ct.user_id
+        JOIN subject s ON ct.sub_id = s.sub_id
+        JOIN user_dep ud ON u.user_id = ud.user_id
+        WHERE ud.dep_id = ? AND u.role = 'Instructor'
+        GROUP BY u.user_id, u.fName, u.lName, ct.teacher_type";
+
+                    $stmt = $conn->prepare($instructorQuery);
+                    $stmt->bind_param('i', $userDepId);
+                    $stmt->execute();
+                    $result = $stmt->get_result();
+                    $instructors = $result->fetch_all(MYSQLI_ASSOC);
+
+                    if (!empty($instructors)): ?>
+                        <table class="instructorTable" style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr>
+                                    <th style="border: 1px solid #ddd; padding: 8px;">Instructor Name</th>
+                                    <th style="border: 1px solid #ddd; padding: 8px;">Teacher Type</th>
+                                    <th style="border: 1px solid #ddd; padding: 8px;">Subjects</th>
+                                    <th style="border: 1px solid #ddd; padding: 8px;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($instructors as $row):
+                                    $fullName = htmlspecialchars($row['fName']) . ' ' . htmlspecialchars($row['lName']);
+                                    $teacherType = htmlspecialchars($row['teacher_type']);
+                                    $subjectName = htmlspecialchars($row['subjects']);
+
+                                    $evaluationQuery = "
+                        SELECT eval_id 
+                        FROM evaluation 
+                        WHERE class_teacher_id = ? AND user_id = ?";
+
+                                    $evalStmt = $conn->prepare($evaluationQuery);
+                                    if (!$evalStmt) {
+                                        die("Query preparation failed: " . $conn->error);
+                                    }
+
+                                    $evalStmt->bind_param('ii', $row['class_teacher_id'], $user_id);
+                                    $evalStmt->execute();
+                                    $evalResult = $evalStmt->get_result();
+                                    $evaluated = $evalResult->num_rows > 0 ? 'true' : 'false';
+                                    $disabledClass = ($evaluated === 'true') ? 'disabled' : '';
+                                    ?>
+                                    <tr>
+                                        <td style="border: 1px solid #ddd; padding: 8px;"><?php echo $fullName; ?></td>
+                                        <td style="border: 1px solid #ddd; padding: 8px;"><?php echo $teacherType; ?></td>
+                                        <td style="border: 1px solid #ddd; padding: 8px;"><?php echo $subjectName; ?></td>
+                                        <td style="border: 1px solid #ddd; padding: 8px;">
+                                            <?php if ($evaluated === 'false') { ?>
+
+                                                <button class="custom-evaluate-btn"
+                                                    data-instructor-id="<?php echo $row['class_teacher_id']; ?>"
+                                                    data-instructor-name="<?php echo $fullName; ?>">
+                                                    Evaluate
+                                                </button>
+                                            <?php } else { ?>
+                                                <span>Evaluated</span>
+                                            <?php } ?>
+                                        </td>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    <?php else: ?>
+                        <p class="custom-no-instructors">No instructors available for evaluation.</p>
+                    <?php endif; ?>
+                </div>
+                <div id="evaluationFormContainer" class="evalFormContainer" style="display:none; margin-top: 20px;">
                     <h2>Professor/Instructor Evaluation Form</h2>
                     <p><strong>Directions:</strong> This questionnaire seeks your objective, honest, and fair
                         evaluation
@@ -317,11 +382,11 @@ WHERE ct.class_teacher_id = ?
                         <p>No ratings available.</p>
                     <?php endif;
                     ?>
-                    <h4>You are now Evaluating <span
-                            class="activeInstructor"><?php echo htmlspecialchars($instructorName); ?></span></h4>
+                    <h4>You are now Evaluating <span class="activeInstructor "
+                            id="instructorName"><?php echo htmlspecialchars($instructorName); ?></span></h4>
 
                     <form action="process_instructor_evaluation.php" method="POST">
-                        <input type="hidden" name="class_teacher_id"
+                        <input type="hidden" id="classTeacherId" name="class_teacher_id"
                             value="<?php echo htmlspecialchars($instructorId); ?>">
                         <input type="hidden" name="user_id" value="<?php echo htmlspecialchars($user_id); ?>">
 
@@ -377,62 +442,6 @@ WHERE ct.class_teacher_id = ?
                         </div>
                     </form>
                 </div>
-
-                <div class="instructorContainer">
-                    <h1>Instructors</h1>
-
-                    <?php
-                    if (!empty($instructors)) {
-                        foreach ($instructors as $row) {
-                            $fullName = htmlspecialchars($row['fName']) . ' ' . htmlspecialchars($row['lName']);
-                            $teacherType = htmlspecialchars($row['teacher_type']);
-                            $subjectName = htmlspecialchars($row['subjects']);
-
-
-                            $evaluationQuery = "
-            SELECT eval_id 
-            FROM evaluation 
-            WHERE class_teacher_id = ? AND user_id = ?
-        ";
-                            $evalStmt = $conn->prepare($evaluationQuery);
-
-                            if (!$evalStmt) {
-                                die("Query preparation failed: " . $conn->error);
-                            }
-
-                            $evalStmt->bind_param('ii', $row['class_teacher_id'], $user_id);
-                            $evalStmt->execute();
-                            $evalResult = $evalStmt->get_result();
-
-                            $evaluated = $evalResult->num_rows > 0 ? 'true' : 'false';
-                            $disabledClass = ($evaluated === 'true') ? 'disabled' : '';
-
-                            ?>
-                            <a href="instructor_evaluation.php?class_teacher_id=<?php echo $row['class_teacher_id']; ?>"
-                                class="instructor <?php echo $disabledClass; ?>" data-evaluated="<?php echo $evaluated; ?>"
-                                data-instructor-id="<?php echo $row['class_teacher_id']; ?>">
-                                <div class="instructorDetails">
-                                    <div>
-                                        <h3><?php echo $fullName; ?></h3>
-                                        <p><?php echo htmlspecialchars($row['teacher_type']); ?></p>
-                                        <span><?php echo $subjectName; ?></span>
-                                    </div>
-                                </div>
-                            </a>
-                            <?php
-                        }
-                    } else {
-                        echo '<p>No instructors available for evaluation.</p>';
-                    }
-                    ?>
-
-
-
-
-
-
-
-                </div>
             </div>
         </div>
 
@@ -471,28 +480,36 @@ WHERE ct.class_teacher_id = ?
                 const sidebar = document.querySelector('.navigation');
                 sidebar.classList.toggle('collapsed');
             }
-            document.addEventListener("DOMContentLoaded", function () {
-                const instructors = document.querySelectorAll('.instructor');
-                const activeInstructorId = localStorage.getItem('activeInstructorId');
+            document.addEventListener('DOMContentLoaded', function () {
+                // Define the openEvaluationForm function globally
+                function openEvaluationForm(button) {
+                    console.log('Button clicked!'); // Debugging: Check if the function is triggered
 
-                if (activeInstructorId) {
-                    const activeInstructor = document.querySelector(`.instructor[data-instructor-id='${activeInstructorId}']`);
-                    if (activeInstructor) {
-                        activeInstructor.classList.add('active');
-                    }
+                    const formContainer = document.getElementById('evaluationFormContainer');
+                    const classTeacherIdInput = document.getElementById('classTeacherId');
+                    const instructorNameDisplay = document.getElementById('instructorName');
+
+                    // Log the values to confirm they are being correctly retrieved
+                    console.log('Instructor ID:', button.getAttribute('data-instructor-id'));
+                    console.log('Instructor Name:', button.getAttribute('data-instructor-name'));
+
+                    // Set form values based on button data
+                    classTeacherIdInput.value = button.getAttribute('data-instructor-id');
+                    instructorNameDisplay.textContent = button.getAttribute('data-instructor-name');
+
+                    // Show the form
+                    formContainer.style.display = 'block';
+                    formContainer.scrollIntoView({ behavior: 'smooth' });
                 }
 
-                instructors.forEach(instructor => {
-                    instructor.addEventListener('click', function () {
-                        if (!instructor.classList.contains('disabled')) {
-                            instructors.forEach(item => item.classList.remove('active'));
-                            instructor.classList.add('active');
-                            const instructorId = instructor.getAttribute('data-instructor-id');
-                            localStorage.setItem('activeInstructorId', instructorId);
-                        }
+                // Add event listeners to the "Evaluate" buttons
+                document.querySelectorAll('.custom-evaluate-btn').forEach(button => {
+                    button.addEventListener('click', function () {
+                        openEvaluationForm(button);
                     });
                 });
             });
+
 
         </script>
 </body>

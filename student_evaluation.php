@@ -71,8 +71,9 @@ if ($conn->connect_error) {
 
         .evalFormContainer {
             border: solid 1px black;
-            width: 80%;
-            margin-right: 20px;
+            width: 100%;
+
+            margin-top: 20px;
             padding: 20px;
             border-radius: 8px;
         }
@@ -225,8 +226,7 @@ if ($conn->connect_error) {
 
         </aside>
 
-        <div class="main">
-
+        <div class="main" style=>
             <?php
             $instructorId = isset($_GET['class_teacher_id']) ? $_GET['class_teacher_id'] : null;
             $instructorName = '';
@@ -247,193 +247,198 @@ WHERE ct.class_teacher_id = ?
                 }
             }
             ?>
-            <div class="evaluationContainer">
-                <div class="evalFormContainer">
-                    <h2>Professor/Instructor Evaluation Form</h2>
-                    <p><strong>Directions:</strong> This questionnaire seeks your objective, honest, and fair
-                        evaluation
-                        of the Professor's/Instructor's performance. Please indicate your rating on the different
-                        items
-                        by
-                        selecting the rating in the corresponding column provided.</p>
-                    <?Php $query = "SELECT rate_name, rates FROM rate ORDER BY rates DESC";
-                    $result = $conn->query($query);
-
-                    // Check if there are ratings available
-                    if ($result->num_rows > 0): ?>
-                        <p><strong>Ratings:</strong></p>
-                        <ul>
-                            <?php while ($row = $result->fetch_assoc()): ?>
-                                <li><?php echo htmlspecialchars($row['rates'] . ' - ' . $row['rate_name']); ?></li>
-                            <?php endwhile; ?>
-                        </ul>
-                    <?php else: ?>
-                        <p>No ratings available.</p>
-                    <?php endif;
-                    ?>
-                    <h4>You are now Evaluating <span
-                            class="activeInstructor"><?php echo htmlspecialchars($instructorName); ?></span></h4>
-
-                    <form action="process_instructor_evaluation_student.php" method="POST">
-                        <input type="hidden" name="class_teacher_id"
-                            value="<?php echo htmlspecialchars($instructorId); ?>">
-                        <input type="hidden" name="user_id" value="<?php echo htmlspecialchars($user_id); ?>">
-
-
-
-                        <table class="table">
-
-                            <thead>
-                                <tr>
-                                    <th>Question</th>
-                                    <th>5</th>
-                                    <th>4</th>
-                                    <th>3</th>
-                                    <th>2</th>
-                                    <th>1</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php
-
-
-                                // Fetch active questions
-                                $query = "SELECT ques_id, questions FROM question WHERE status = 'active' ORDER BY ques_id ASC";
-                                $result = $conn->query($query);
-
-                                if ($result->num_rows > 0) {
-                                    while ($row = $result->fetch_assoc()) {
-                                        echo '<tr>';
-                                        echo '<td>' . htmlspecialchars($row['ques_id'] . '. ' . $row['questions']) . '</td>';
-
-                                        // Generate radio buttons for each question
-                                        for ($i = 5; $i >= 1; $i--) {
-                                            echo '<td><input type="radio" name="q' . $row['ques_id'] . '" value="' . $i . '" required></td>';
-                                        }
-                                        echo '</tr>';
-                                    }
-                                } else {
-                                    echo '<tr><td colspan="6">No questions available.</td></tr>';
-                                }
-
-                                ?>
-                            </tbody>
-                        </table>
-
-
-
-                        <div class="remarksContainer">
-                            <label for=""><strong>Remarks </strong></label>
-                            <textarea name="remarks" id="remarks" cols="30" rows="10"
-                                placeholder="Enter your remarks"></textarea>
-                            <button type="submit">Submit</button>
-                        </div>
-                    </form>
-                </div>
-
-                <div class="instructorContainer" style="padding: 10px;">
-                    <h1>Instructors</h1>
-                    <?php
-                    $sectionOfUserQuery = "
+            <div class="instructorContainer">
+                <h1>Instructors</h1>
+                <?php
+                $sectionOfUserQuery = "
     SELECT 
         cs.section_id, 
         s.sections, 
         s.class_id,
-        c.year_level                 
+        c.year_level,
+        ds.sem_id,
+        sem.semesters
     FROM class_student cs
     JOIN section s ON cs.section_id = s.section_id
+    JOIN section_subjec ss ON s.section_id = ss.section_id
+    JOIN subject sub ON ss.sub_id = sub.sub_id
+    JOIN dep_sub ds ON sub.sub_id = ds.sub_id
+    JOIN semester sem ON ds.sem_id = sem.sem_id
     JOIN class c ON s.class_id = c.class_id
     WHERE cs.user_id = ?
 ";
 
-                    $stmt = $conn->prepare($sectionOfUserQuery);
-                    $stmt->bind_param("i", $user_id); // Assuming $user_id contains the logged-in user's ID
-                    $stmt->execute();
-                    $result = $stmt->get_result();
 
-                    if ($row = $result->fetch_assoc()) {
-                        $sectionId = $row['section_id'];
-                        $sectionName = $row['sections'];
-                        $yearLevel = $row['year_level'];
-                    } else {
-                        $sectionName = "N/A";
-                        $yearLevel = "N/A";
-                    }
-                    ?>
+                $stmt = $conn->prepare($sectionOfUserQuery);
+                $stmt->bind_param("i", $user_id);
+                $stmt->execute();
+                $result = $stmt->get_result();
 
-                    <p>Section: <?php echo htmlspecialchars($yearLevel . " " . $sectionName); ?></p>
+                if ($row = $result->fetch_assoc()) {
+                    $sectionId = $row['section_id'];
+                    $sectionName = $row['sections'];
+                    $yearLevel = $row['year_level'];
+                    $semester = $row['semesters'];
+                } else {
+                    $sectionName = "N/A";
+                    $yearLevel = "N/A";
+                }
+                ?>
 
+                <p>Section: <?php echo htmlspecialchars($yearLevel . "-" . $sectionName . ":" . $semester); ?></p>
 
-                    <?php
-                    $studentId = $user_id;  // Assuming $user_id is the logged-in student's ID
-                    $instructorsQuery = "
-    SELECT 
-        ct.class_teacher_id,
-        s.sub_id, 
-        s.subjects,
-        u.fname AS instructor_fname,
-        u.lname AS instructor_lname,
-        ct.teacher_type
-    FROM class_student cs
-    JOIN section_subjec ss ON cs.section_id = ss.section_id
-    JOIN subject s ON ss.sub_id = s.sub_id
-    LEFT JOIN class_teacher ct ON s.sub_id = ct.sub_id
-    LEFT JOIN users u ON ct.user_id = u.user_id
-    WHERE cs.user_id = ? 
-    AND ct.class_teacher_id IN (SELECT MIN(class_teacher_id) 
-                                 FROM class_teacher 
-                                 WHERE sub_id = s.sub_id)
-    ORDER BY s.subjects;
-";
-
-
-
-
-                    $stmt = $conn->prepare($instructorsQuery);
-                    $stmt->bind_param('i', $studentId);
-                    $stmt->execute();
-                    $result = $stmt->get_result();
-
-                    if ($result->num_rows > 0) {
-                        while ($row = $result->fetch_assoc()) {
-                            $fullName = htmlspecialchars($row['instructor_fname']) . ' ' . htmlspecialchars($row['instructor_lname']);
-                            $teacherType = htmlspecialchars($row['teacher_type']);
-                            $subjectName = htmlspecialchars($row['subjects']);
-
-                            // Check if the student has already evaluated the instructor
-                            $evaluationQuery = "
-                SELECT eval_id 
-                FROM evaluation 
-                WHERE class_teacher_id = ? AND user_id = ?
+                <table class="instructorContainer" style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr>
+                            <th style="border: 1px solid #ddd; padding: 8px;">Instructor Name</th>
+                            <th style="border: 1px solid #ddd; padding: 8px;">Teacher Type</th>
+                            <th style="border: 1px solid #ddd; padding: 8px;">Subject</th>
+                            <th style="border: 1px solid #ddd; padding: 8px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        $studentId = $user_id;  // Assuming $user_id is the logged-in student's ID
+                        $instructorsQuery = "
+                SELECT 
+                    ct.class_teacher_id,
+                    s.sub_id, 
+                    s.subjects,
+                    u.fname AS instructor_fname,
+                    u.lname AS instructor_lname,
+                    ct.teacher_type
+                FROM class_student cs
+                JOIN section_subjec ss ON cs.section_id = ss.section_id
+                JOIN subject s ON ss.sub_id = s.sub_id
+                LEFT JOIN class_teacher ct ON s.sub_id = ct.sub_id
+                LEFT JOIN users u ON ct.user_id = u.user_id
+                WHERE cs.user_id = ? 
+                AND ct.class_teacher_id IN (SELECT MIN(class_teacher_id) 
+                                             FROM class_teacher 
+                                             WHERE sub_id = s.sub_id)
+                ORDER BY s.subjects;
             ";
-                            $evalStmt = $conn->prepare($evaluationQuery);
-                            $evalStmt->bind_param('ii', $row['class_teacher_id'], $user_id);
-                            $evalStmt->execute();
-                            $evalResult = $evalStmt->get_result();
 
-                            $evaluated = $evalResult->num_rows > 0 ? 'true' : 'false';
-                            $disabledClass = ($evaluated === 'true') ? 'disabled' : '';
+                        $stmt = $conn->prepare($instructorsQuery);
+                        $stmt->bind_param('i', $studentId);
+                        $stmt->execute();
+                        $result = $stmt->get_result();
 
-                            ?>
-                            <a href="student_evaluation.php?class_teacher_id=<?php echo $row['class_teacher_id']; ?>"
-                                class="instructor <?php echo $disabledClass; ?>" data-evaluated="<?php echo $evaluated; ?>"
-                                data-instructor-id="<?php echo $row['class_teacher_id']; ?>">
-                                <div class="instructorDetails">
-                                    <div>
-                                        <h3><?php echo $fullName; ?></h3>
-                                        <p><?php echo $teacherType; ?></p>
-                                        <span><?php echo $subjectName; ?></span>
-                                    </div>
-                                </div>
-                            </a>
-                            <?php
+                        if ($result->num_rows > 0) {
+                            while ($row = $result->fetch_assoc()) {
+                                $fullName = htmlspecialchars($row['instructor_fname']) . ' ' . htmlspecialchars($row['instructor_lname']);
+                                $teacherType = htmlspecialchars($row['teacher_type']);
+                                $subjectName = htmlspecialchars($row['subjects']);
+
+                                // Check if the student has already evaluated the instructor
+                                $evaluationQuery = "
+                        SELECT eval_id 
+                        FROM evaluation 
+                        WHERE class_teacher_id = ? AND user_id = ?
+                    ";
+                                $evalStmt = $conn->prepare($evaluationQuery);
+                                $evalStmt->bind_param('ii', $row['class_teacher_id'], $user_id);
+                                $evalStmt->execute();
+                                $evalResult = $evalStmt->get_result();
+
+                                $evaluated = $evalResult->num_rows > 0 ? 'true' : 'false';
+                                $disabledClass = ($evaluated === 'true') ? 'disabled' : '';
+                                ?>
+                                <tr>
+                                    <td style="border: 1px solid #ddd; padding: 8px;"><?php echo $fullName; ?></td>
+                                    <td style="border: 1px solid #ddd; padding: 8px;"><?php echo $teacherType; ?></td>
+                                    <td style="border: 1px solid #ddd; padding: 8px;"><?php echo $subjectName; ?></td>
+                                    <td style="border: 1px solid #ddd; padding: 8px;">
+                                        <?php if ($evaluated === 'false') { ?>
+                                            <button class="custom-evaluation-button"
+                                                data-class-teacher-id="<?php echo $row['class_teacher_id']; ?>"
+                                                data-instructor-name="<?php echo $fullName; ?>">
+                                                Evaluate
+                                            </button>
+
+                                        <?php } else { ?>
+                                            <span>Evaluated</span>
+                                        <?php } ?>
+                                    </td>
+                                </tr>
+                                <?php
+                            }
+                        } else {
+                            echo '<tr><td colspan="4" style="border: 1px solid #ddd; padding: 8px; text-align: center;">No instructors available for evaluation.</td></tr>';
                         }
-                    } else {
-                        echo '<p>No instructors available for evaluation.</p>';
-                    }
-                    ?>
-                </div>
+                        ?>
+                    </tbody>
+                </table>
+            </div>
+            <div class="evalFormContainer" style="display: none;">
+                <h2>Professor/Instructor Evaluation Form</h2>
+                <p><strong>Directions:</strong> This questionnaire seeks your objective, honest, and fair evaluation of
+                    the
+                    Professor's/Instructor's performance. Please indicate your rating on the different items by
+                    selecting
+                    the rating in the corresponding column provided.</p>
 
+                <?php
+                $query = "SELECT rate_name, rates FROM rate ORDER BY rates DESC";
+                $result = $conn->query($query);
+
+                if ($result->num_rows > 0): ?>
+                    <p><strong>Ratings:</strong></p>
+                    <ul>
+                        <?php while ($row = $result->fetch_assoc()): ?>
+                            <li><?php echo htmlspecialchars($row['rates'] . ' - ' . $row['rate_name']); ?></li>
+                        <?php endwhile; ?>
+                    </ul>
+                <?php else: ?>
+                    <p>No ratings available.</p>
+                <?php endif; ?>
+
+                <h4>You are now Evaluating <span id="activeInstructorName"></span></h4>
+
+                <form action="process_instructor_evaluation_student.php" method="POST">
+                    <input type="hidden" name="class_teacher_id" id="formClassTeacherId">
+                    <input type="hidden" name="user_id" value="<?php echo htmlspecialchars($user_id); ?>">
+
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Question</th>
+                                <th>5</th>
+                                <th>4</th>
+                                <th>3</th>
+                                <th>2</th>
+                                <th>1</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php
+                            $query = "SELECT ques_id, questions FROM question WHERE status = 'active' ORDER BY ques_id ASC";
+                            $result = $conn->query($query);
+
+                            if ($result->num_rows > 0) {
+                                while ($row = $result->fetch_assoc()) {
+                                    echo '<tr>';
+                                    echo '<td>' . htmlspecialchars($row['ques_id'] . '. ' . $row['questions']) . '</td>';
+
+                                    for ($i = 5; $i >= 1; $i--) {
+                                        echo '<td><input type="radio" name="q' . $row['ques_id'] . '" value="' . $i . '" required></td>';
+                                    }
+                                    echo '</tr>';
+                                }
+                            } else {
+                                echo '<tr><td colspan="6">No questions available.</td></tr>';
+                            }
+                            ?>
+                        </tbody>
+                    </table>
+
+                    <div class="remarksContainer">
+                        <label for="remarks"><strong>Remarks</strong></label>
+                        <textarea name="remarks" id="remarks" cols="30" rows="10"
+                            placeholder="Enter your remarks"></textarea>
+                        <button type="submit">Submit</button>
+                    </div>
+                </form>
             </div>
         </div>
 
@@ -469,25 +474,33 @@ WHERE ct.class_teacher_id = ?
                 const sidebar = document.querySelector('.navigation');
                 sidebar.classList.toggle('collapsed');
             }
-            document.addEventListener("DOMContentLoaded", function () {
-                const instructors = document.querySelectorAll('.instructor');
-                const activeInstructorId = localStorage.getItem('activeInstructorId');
 
-                if (activeInstructorId) {
-                    const activeInstructor = document.querySelector(`.instructor[data-instructor-id='${activeInstructorId}']`);
-                    if (activeInstructor) {
-                        activeInstructor.classList.add('active');
+            document.addEventListener('DOMContentLoaded', function () {
+                function showEvaluationForm(button) {
+                    const classTeacherId = button.getAttribute('data-class-teacher-id');
+                    const instructorName = button.getAttribute('data-instructor-name');
+
+                    // Ensure elements exist before trying to set their properties
+                    const classTeacherInput = document.getElementById('formClassTeacherId');
+                    const instructorNameSpan = document.getElementById('activeInstructorName');
+                    const formContainer = document.querySelector('.evalFormContainer');
+
+                    if (classTeacherInput && instructorNameSpan && formContainer) {
+                        classTeacherInput.value = classTeacherId;
+                        instructorNameSpan.textContent = instructorName;
+
+                        formContainer.style.display = 'block';
+                        formContainer.scrollIntoView({ behavior: 'smooth' });
+                    } else {
+                        console.error('Form elements are missing. Please check the HTML structure.');
                     }
                 }
 
-                instructors.forEach(instructor => {
-                    instructor.addEventListener('click', function () {
-                        if (!instructor.classList.contains('disabled')) {
-                            instructors.forEach(item => item.classList.remove('active'));
-                            instructor.classList.add('active');
-                            const instructorId = instructor.getAttribute('data-instructor-id');
-                            localStorage.setItem('activeInstructorId', instructorId);
-                        }
+                // Attach the function to buttons with the class 'custom-evaluation-button'
+                const evaluationButtons = document.querySelectorAll('.custom-evaluation-button');
+                evaluationButtons.forEach(button => {
+                    button.addEventListener('click', function () {
+                        showEvaluationForm(this);
                     });
                 });
             });
