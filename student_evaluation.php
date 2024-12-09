@@ -27,7 +27,7 @@ if ($conn->connect_error) {
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width-device-width, initial-scale=1.0">
     <title>Instructor Evaluation</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="sidebar.css">
     <style>
         .table {
             width: 100%;
@@ -151,45 +151,82 @@ if ($conn->connect_error) {
 </head>
 
 <body>
-    <div class="containerr">
-        <div class="navigation">
+    <nav class="topbar">
+
+        <div class="toggle" onclick="toggleSidebar()">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 22H15C20 22 22 20 22 15V9C22 4 20 2 15 2H9C4 2 2 4 2 9V15C2 20 4 22 9 22Z" stroke="white"
+                    stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                <path d="M9 2V22" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+
+        </div>
+
+        <div class="user">
+            <div class="dropdown">
+                <!-- Clickable Image -->
+                <button class="dropdown-btn " onclick="toggleUser()">
+                    <img src="/img/admin.jpg" alt="User Profile" class="profile-img">
+                </button>
+                <!-- Dropdown Menu -->
+                <div class="dropdown-content" style="display: none;">
+                    <div>
+                        <a href="#">Manage Account</a>
+                    </div>
+                    <div>
+                        <a href="logout.php">Logout</a>
+                    </div>
+                    <!-- PHP to log out user -->
+                </div>
+            </div>
+        </div>
+    </nav>
+    <div class="container">
+        <aside class="navigation">
             <ul>
-                <li>
+                <li class="logo">
+
                     <a href="">
-                        <span class="icon"><ion-icon name="school"></ion-icon></span>
+                        <span class="custom-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M10.05 2.53004L4.03002 6.46004C2.10002 7.72004 2.10002 10.54 4.03002 11.8L10.05 15.73C11.13 16.44 12.91 16.44 13.99 15.73L19.98 11.8C21.9 10.54 21.9 7.73004 19.98 6.47004L13.99 2.54004C12.91 1.82004 11.13 1.82004 10.05 2.53004Z"
+                                    stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                <path
+                                    d="M5.63 13.08L5.62 17.77C5.62 19.04 6.6 20.4 7.8 20.8L10.99 21.86C11.54 22.04 12.45 22.04 13.01 21.86L16.2 20.8C17.4 20.4 18.38 19.04 18.38 17.77V13.13"
+                                    stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                <path d="M21.4 15V9" stroke="white" stroke-width="1.5" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+
+
+                        </span>
                         <span class="title">NEUST</span>
                     </a>
                 </li>
-
                 <li id="dashboard">
-                    <a href="eval_result.php"><span class="icon"><ion-icon name="desktop"></ion-icon></span><span
-                            class="title">Evaluation</span></a>
+                    <a href="student_evaluation.php"><span class="icon"><svg width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12.37 8.87988H17.62" stroke="white" stroke-width="1.5" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                                <path d="M6.38 8.87988L7.13 9.62988L9.38 7.37988" stroke="white" stroke-width="1.5"
+                                    stroke-linecap="round" stroke-linejoin="round" />
+                                <path d="M12.37 15.8799H17.62" stroke="white" stroke-width="1.5" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                                <path d="M6.38 15.8799L7.13 16.6299L9.38 14.3799" stroke="white" stroke-width="1.5"
+                                    stroke-linecap="round" stroke-linejoin="round" />
+                                <path d="M9 22H15C20 22 22 20 22 15V9C22 4 20 2 15 2H9C4 2 2 4 2 9V15C2 20 4 22 9 22Z"
+                                    stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                        </span><span class="title">Evaluation</span></a>
                 </li>
 
             </ul>
-        </div>
+
+        </aside>
 
         <div class="main">
-            <div class="topbar">
-                <div class="toggle">
-                    <ion-icon name="menu"></ion-icon>
-                </div>
-                <div class="user">
-                    <div class="dropdown">
-                        <!-- Clickable Image -->
-                        <button class="dropdown-btn">
-                            <img src="/img/admin.jpg" alt="User Profile" class="profile-img">
-                        </button>
-                        <!-- Dropdown Menu -->
-                        <div class="dropdown-content">
-                            <a href="#">Manage Account</a>
-                            <a href="logout.php">Logout</a>
-                            <!-- PHP to log out user -->
-                        </div>
-                    </div>
-                </div>
 
-            </div>
             <?php
             $instructorId = isset($_GET['class_teacher_id']) ? $_GET['class_teacher_id'] : null;
             $instructorName = '';
@@ -224,14 +261,14 @@ WHERE ct.class_teacher_id = ?
 
                     // Check if there are ratings available
                     if ($result->num_rows > 0): ?>
-                            <p><strong>Ratings:</strong></p>
-                            <ul>
-                                <?php while ($row = $result->fetch_assoc()): ?>
-                                        <li><?php echo htmlspecialchars($row['rates'] . ' - ' . $row['rate_name']); ?></li>
-                                <?php endwhile; ?>
-                            </ul>
+                        <p><strong>Ratings:</strong></p>
+                        <ul>
+                            <?php while ($row = $result->fetch_assoc()): ?>
+                                <li><?php echo htmlspecialchars($row['rates'] . ' - ' . $row['rate_name']); ?></li>
+                            <?php endwhile; ?>
+                        </ul>
                     <?php else: ?>
-                            <p>No ratings available.</p>
+                        <p>No ratings available.</p>
                     <?php endif;
                     ?>
                     <h4>You are now Evaluating <span
@@ -378,18 +415,18 @@ WHERE ct.class_teacher_id = ?
                             $disabledClass = ($evaluated === 'true') ? 'disabled' : '';
 
                             ?>
-                                    <a href="student_evaluation.php?class_teacher_id=<?php echo $row['class_teacher_id']; ?>"
-                                        class="instructor <?php echo $disabledClass; ?>" data-evaluated="<?php echo $evaluated; ?>"
-                                        data-instructor-id="<?php echo $row['class_teacher_id']; ?>">
-                                        <div class="instructorDetails">
-                                            <div>
-                                                <h3><?php echo $fullName; ?></h3>
-                                                <p><?php echo $teacherType; ?></p>
-                                                <span><?php echo $subjectName; ?></span>
-                                            </div>
-                                        </div>
-                                    </a>
-                                    <?php
+                            <a href="student_evaluation.php?class_teacher_id=<?php echo $row['class_teacher_id']; ?>"
+                                class="instructor <?php echo $disabledClass; ?>" data-evaluated="<?php echo $evaluated; ?>"
+                                data-instructor-id="<?php echo $row['class_teacher_id']; ?>">
+                                <div class="instructorDetails">
+                                    <div>
+                                        <h3><?php echo $fullName; ?></h3>
+                                        <p><?php echo $teacherType; ?></p>
+                                        <span><?php echo $subjectName; ?></span>
+                                    </div>
+                                </div>
+                            </a>
+                            <?php
                         }
                     } else {
                         echo '<p>No instructors available for evaluation.</p>';
@@ -398,35 +435,64 @@ WHERE ct.class_teacher_id = ?
                 </div>
 
             </div>
-
-            <script src="main.js"></script>
-            <script src="https://unpkg.com/ionicons@4.5.10-0/dist/ionicons.js"></script>
+        </div>
 
 
-            <script>document.addEventListener("DOMContentLoaded", function () {
-                    const instructors = document.querySelectorAll('.instructor');
-                    const activeInstructorId = localStorage.getItem('activeInstructorId');
+        <script>
+            const toggle = document.querySelector('.toggle');
+            const navigation = document.querySelector('.navigation');
 
-                    if (activeInstructorId) {
-                        const activeInstructor = document.querySelector(`.instructor[data-instructor-id='${activeInstructorId}']`);
-                        if (activeInstructor) {
-                            activeInstructor.classList.add('active');
-                        }
+            toggle.addEventListener('click', () => {
+                navigation.classList.toggle('active');
+            });
+
+            function toggleUser() {
+                const userDropdown = document.querySelector('.dropdown-content');
+                userDropdown.style.display = userDropdown.style.display === 'none' ? 'block' : 'none';
+            }
+            function showInstructorDropdown() {
+                const instructorDropdown = document.querySelector('.instructorDropdown');
+                instructorDropdown.style.display = instructorDropdown.style.display === 'none' ? 'block' : 'none';
+            }
+
+            function showStudentDropdown() {
+                const studentDropdown = document.querySelector('.studentDropdown'); // Corrected variable name
+                studentDropdown.style.display = studentDropdown.style.display === 'none' ? 'block' : 'none';
+            }
+
+            function showDepartmentDropdown() {
+                const departmentDropdown = document.querySelector('.departmentDropdown'); // Corrected variable name
+                departmentDropdown.style.display = departmentDropdown.style.display === 'none' ? 'block' : 'none';
+            }
+
+            function toggleSidebar() {
+                const sidebar = document.querySelector('.navigation');
+                sidebar.classList.toggle('collapsed');
+            }
+            document.addEventListener("DOMContentLoaded", function () {
+                const instructors = document.querySelectorAll('.instructor');
+                const activeInstructorId = localStorage.getItem('activeInstructorId');
+
+                if (activeInstructorId) {
+                    const activeInstructor = document.querySelector(`.instructor[data-instructor-id='${activeInstructorId}']`);
+                    if (activeInstructor) {
+                        activeInstructor.classList.add('active');
                     }
+                }
 
-                    instructors.forEach(instructor => {
-                        instructor.addEventListener('click', function () {
-                            if (!instructor.classList.contains('disabled')) {
-                                instructors.forEach(item => item.classList.remove('active'));
-                                instructor.classList.add('active');
-                                const instructorId = instructor.getAttribute('data-instructor-id');
-                                localStorage.setItem('activeInstructorId', instructorId);
-                            }
-                        });
+                instructors.forEach(instructor => {
+                    instructor.addEventListener('click', function () {
+                        if (!instructor.classList.contains('disabled')) {
+                            instructors.forEach(item => item.classList.remove('active'));
+                            instructor.classList.add('active');
+                            const instructorId = instructor.getAttribute('data-instructor-id');
+                            localStorage.setItem('activeInstructorId', instructorId);
+                        }
                     });
                 });
+            });
 
-            </script>
+        </script>
 </body>
 
 </html>
