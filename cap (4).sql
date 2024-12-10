@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Dec 06, 2024 at 05:27 AM
+-- Generation Time: Dec 10, 2024 at 10:19 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -59,7 +59,10 @@ CREATE TABLE `advisory_class` (
 --
 
 INSERT INTO `advisory_class` (`advisory_class_id`, `class_id`, `ay_id`, `sem_id`, `isActive`) VALUES
-(1, 4, 1, 2, 1);
+(14, 7, 1, 1, 1),
+(15, 9, 1, 1, 1),
+(16, 9, 1, 2, 1),
+(17, 7, 1, 2, 1);
 
 -- --------------------------------------------------------
 
@@ -70,7 +73,7 @@ INSERT INTO `advisory_class` (`advisory_class_id`, `class_id`, `ay_id`, `sem_id`
 CREATE TABLE `class` (
   `class_id` int(11) NOT NULL,
   `year_level` int(11) DEFAULT NULL,
-  `section_id` int(11) DEFAULT NULL
+  `section_id` int(10) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -78,31 +81,9 @@ CREATE TABLE `class` (
 --
 
 INSERT INTO `class` (`class_id`, `year_level`, `section_id`) VALUES
-(1, 1, NULL),
-(2, 2, NULL),
-(3, 3, NULL),
-(4, 4, NULL);
-
--- --------------------------------------------------------
-
---
--- Table structure for table `class_student`
---
-
-CREATE TABLE `class_student` (
-  `class_student_id` int(11) NOT NULL,
-  `advisory_class_id` int(11) DEFAULT NULL,
-  `dep_id` int(11) DEFAULT NULL,
-  `sub_id` int(11) DEFAULT NULL,
-  `user_id` int(11) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `class_student`
---
-
-INSERT INTO `class_student` (`class_student_id`, `advisory_class_id`, `dep_id`, `sub_id`, `user_id`) VALUES
-(1, 1, 1, 1, 15);
+(7, 4, 10),
+(8, 4, 11),
+(9, 1, 12);
 
 -- --------------------------------------------------------
 
@@ -123,30 +104,12 @@ CREATE TABLE `class_teacher` (
 --
 
 INSERT INTO `class_teacher` (`class_teacher_id`, `advisory_class_id`, `teacher_type`, `sub_id`, `user_id`) VALUES
-(2, 1, 'Primary Teacher', 5, 18),
-(3, 1, 'Secondary Teacher', 2, 17),
-(4, 1, 'Primary Teacher', 3, 19),
-(5, 1, 'Primary Teacher', 1, 67),
-(10, 1, 'Main', 4, 11),
-(11, 1, 'student', 1, 13),
-(12, 1, 'student', 2, 13),
-(13, 1, 'student', 3, 13),
-(14, 1, 'student', 4, 13),
-(15, 1, 'student', 5, 13),
-(16, 1, 'student', 6, 13),
-(17, 1, 'student', 1, 69),
-(18, 1, 'student', 2, 69),
-(19, 1, 'student', 3, 69),
-(20, 1, 'student', 4, 69),
-(21, 1, 'student', 5, 69),
-(22, 1, 'student', 6, 69),
-(23, 1, 'student', 1, 15),
-(24, 1, 'student', 1, 70),
-(25, 1, 'student', 2, 70),
-(26, 1, 'student', 3, 70),
-(27, 1, 'student', 4, 70),
-(28, 1, 'student', 5, 70),
-(29, 1, 'student', 6, 70);
+(45, 14, 'Primary Teacher', 1, 17),
+(46, 14, 'Primary Teacher', 2, 18),
+(47, 14, 'Primary Teacher', 3, 19),
+(48, 14, 'Primary Teacher', 4, 20),
+(49, 14, 'Primary Teacher', 5, 67),
+(50, 14, 'Primary Teacher', 6, 63);
 
 -- --------------------------------------------------------
 
@@ -206,21 +169,30 @@ CREATE TABLE `evaluation` (
   `rate_result` decimal(10,2) NOT NULL,
   `user_id` int(11) NOT NULL,
   `class_teacher_id` int(11) NOT NULL,
-  `date_created` datetime DEFAULT current_timestamp()
+  `date_created` datetime DEFAULT current_timestamp(),
+  `transaction_code` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `evaluation`
 --
 
-INSERT INTO `evaluation` (`eval_id`, `remarks`, `rate_result`, `user_id`, `class_teacher_id`, `date_created`) VALUES
-(13, 'Skibi toilet', 5.00, 65, 3, '2024-12-03 23:24:11'),
-(14, 'nyiknyiknyik', 2.00, 65, 2, '2024-12-03 23:25:08'),
-(15, 'asdasdsa', 5.00, 67, 3, '2024-12-03 23:29:40'),
-(16, 'asdasdasda', 5.00, 67, 6, '2024-12-03 23:30:00'),
-(17, 'asdasdasdasdasd', 4.00, 69, 5, '2024-12-04 18:46:46'),
-(18, 'asdasdasdas', 4.00, 70, 5, '2024-12-04 23:45:46'),
-(19, 'asdsadasas', 4.00, 69, 3, '2024-12-05 01:03:04');
+INSERT INTO `evaluation` (`eval_id`, `remarks`, `rate_result`, `user_id`, `class_teacher_id`, `date_created`, `transaction_code`) VALUES
+(32, 'asdasdsad', 4.90, 69, 47, '2024-12-10 17:08:29', '0AF3E815-1733821709'),
+(33, 'asdasdsadsa', 5.00, 73, 45, '2024-12-10 17:09:10', 'E0781A04-1733821750');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `password_resets`
+--
+
+CREATE TABLE `password_resets` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `code` varchar(6) NOT NULL,
+  `expires_at` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -304,146 +276,46 @@ CREATE TABLE `ratings` (
 --
 
 INSERT INTO `ratings` (`ratings_id`, `eval_id`, `ques_id`, `rate_id`, `date_created`) VALUES
-(161, 13, 1, 5, '2024-12-03 23:24:11'),
-(162, 13, 2, 5, '2024-12-03 23:24:11'),
-(163, 13, 3, 5, '2024-12-03 23:24:11'),
-(164, 13, 4, 5, '2024-12-03 23:24:11'),
-(165, 13, 5, 5, '2024-12-03 23:24:11'),
-(166, 13, 6, 5, '2024-12-03 23:24:11'),
-(167, 13, 7, 5, '2024-12-03 23:24:11'),
-(168, 13, 8, 5, '2024-12-03 23:24:11'),
-(169, 13, 9, 5, '2024-12-03 23:24:11'),
-(170, 13, 10, 5, '2024-12-03 23:24:11'),
-(171, 13, 11, 5, '2024-12-03 23:24:11'),
-(172, 13, 12, 5, '2024-12-03 23:24:11'),
-(173, 13, 13, 5, '2024-12-03 23:24:11'),
-(174, 13, 14, 5, '2024-12-03 23:24:11'),
-(175, 13, 15, 5, '2024-12-03 23:24:11'),
-(176, 13, 16, 5, '2024-12-03 23:24:11'),
-(177, 13, 17, 5, '2024-12-03 23:24:11'),
-(178, 13, 18, 5, '2024-12-03 23:24:11'),
-(179, 13, 19, 5, '2024-12-03 23:24:11'),
-(180, 13, 21, 5, '2024-12-03 23:24:11'),
-(181, 14, 1, 1, '2024-12-03 23:25:08'),
-(182, 14, 2, 1, '2024-12-03 23:25:08'),
-(183, 14, 3, 1, '2024-12-03 23:25:08'),
-(184, 14, 4, 1, '2024-12-03 23:25:08'),
-(185, 14, 5, 2, '2024-12-03 23:25:08'),
-(186, 14, 6, 3, '2024-12-03 23:25:08'),
-(187, 14, 7, 4, '2024-12-03 23:25:08'),
-(188, 14, 8, 5, '2024-12-03 23:25:08'),
-(189, 14, 9, 4, '2024-12-03 23:25:08'),
-(190, 14, 10, 3, '2024-12-03 23:25:08'),
-(191, 14, 11, 2, '2024-12-03 23:25:08'),
-(192, 14, 12, 1, '2024-12-03 23:25:08'),
-(193, 14, 13, 1, '2024-12-03 23:25:08'),
-(194, 14, 14, 2, '2024-12-03 23:25:08'),
-(195, 14, 15, 3, '2024-12-03 23:25:08'),
-(196, 14, 16, 4, '2024-12-03 23:25:08'),
-(197, 14, 17, 5, '2024-12-03 23:25:08'),
-(198, 14, 18, 4, '2024-12-03 23:25:08'),
-(199, 14, 19, 3, '2024-12-03 23:25:08'),
-(200, 14, 21, 2, '2024-12-03 23:25:08'),
-(201, 15, 1, 5, '2024-12-03 23:29:40'),
-(202, 15, 2, 5, '2024-12-03 23:29:40'),
-(203, 15, 3, 5, '2024-12-03 23:29:40'),
-(204, 15, 4, 5, '2024-12-03 23:29:40'),
-(205, 15, 5, 5, '2024-12-03 23:29:40'),
-(206, 15, 6, 5, '2024-12-03 23:29:40'),
-(207, 15, 7, 5, '2024-12-03 23:29:40'),
-(208, 15, 8, 5, '2024-12-03 23:29:40'),
-(209, 15, 9, 5, '2024-12-03 23:29:40'),
-(210, 15, 10, 5, '2024-12-03 23:29:40'),
-(211, 15, 11, 5, '2024-12-03 23:29:40'),
-(212, 15, 12, 5, '2024-12-03 23:29:40'),
-(213, 15, 13, 5, '2024-12-03 23:29:40'),
-(214, 15, 14, 5, '2024-12-03 23:29:40'),
-(215, 15, 15, 5, '2024-12-03 23:29:40'),
-(216, 15, 16, 5, '2024-12-03 23:29:40'),
-(217, 15, 17, 5, '2024-12-03 23:29:40'),
-(218, 15, 18, 5, '2024-12-03 23:29:40'),
-(219, 15, 19, 5, '2024-12-03 23:29:40'),
-(220, 15, 21, 5, '2024-12-03 23:29:40'),
-(221, 16, 1, 5, '2024-12-03 23:30:00'),
-(222, 16, 2, 5, '2024-12-03 23:30:00'),
-(223, 16, 3, 5, '2024-12-03 23:30:00'),
-(224, 16, 4, 5, '2024-12-03 23:30:00'),
-(225, 16, 5, 5, '2024-12-03 23:30:00'),
-(226, 16, 6, 5, '2024-12-03 23:30:00'),
-(227, 16, 7, 5, '2024-12-03 23:30:00'),
-(228, 16, 8, 5, '2024-12-03 23:30:00'),
-(229, 16, 9, 5, '2024-12-03 23:30:00'),
-(230, 16, 10, 5, '2024-12-03 23:30:00'),
-(231, 16, 11, 5, '2024-12-03 23:30:00'),
-(232, 16, 12, 5, '2024-12-03 23:30:00'),
-(233, 16, 13, 5, '2024-12-03 23:30:00'),
-(234, 16, 14, 5, '2024-12-03 23:30:00'),
-(235, 16, 15, 5, '2024-12-03 23:30:00'),
-(236, 16, 16, 5, '2024-12-03 23:30:00'),
-(237, 16, 17, 5, '2024-12-03 23:30:00'),
-(238, 16, 18, 5, '2024-12-03 23:30:00'),
-(239, 16, 19, 5, '2024-12-03 23:30:00'),
-(240, 16, 21, 5, '2024-12-03 23:30:00'),
-(241, 17, 1, 5, '2024-12-04 18:46:46'),
-(242, 17, 2, 4, '2024-12-04 18:46:46'),
-(243, 17, 3, 5, '2024-12-04 18:46:46'),
-(244, 17, 4, 4, '2024-12-04 18:46:46'),
-(245, 17, 5, 5, '2024-12-04 18:46:46'),
-(246, 17, 6, 4, '2024-12-04 18:46:46'),
-(247, 17, 7, 5, '2024-12-04 18:46:46'),
-(248, 17, 8, 5, '2024-12-04 18:46:46'),
-(249, 17, 9, 4, '2024-12-04 18:46:46'),
-(250, 17, 10, 5, '2024-12-04 18:46:46'),
-(251, 17, 11, 4, '2024-12-04 18:46:46'),
-(252, 17, 12, 5, '2024-12-04 18:46:46'),
-(253, 17, 13, 4, '2024-12-04 18:46:46'),
-(254, 17, 14, 5, '2024-12-04 18:46:46'),
-(255, 17, 15, 4, '2024-12-04 18:46:46'),
-(256, 17, 16, 5, '2024-12-04 18:46:46'),
-(257, 17, 17, 4, '2024-12-04 18:46:46'),
-(258, 17, 18, 5, '2024-12-04 18:46:46'),
-(259, 17, 19, 4, '2024-12-04 18:46:46'),
-(260, 17, 21, 5, '2024-12-04 18:46:46'),
-(261, 18, 1, 5, '2024-12-04 23:45:46'),
-(262, 18, 2, 5, '2024-12-04 23:45:46'),
-(263, 18, 3, 3, '2024-12-04 23:45:46'),
-(264, 18, 4, 4, '2024-12-04 23:45:46'),
-(265, 18, 5, 5, '2024-12-04 23:45:46'),
-(266, 18, 6, 4, '2024-12-04 23:45:46'),
-(267, 18, 7, 4, '2024-12-04 23:45:46'),
-(268, 18, 8, 3, '2024-12-04 23:45:46'),
-(269, 18, 9, 4, '2024-12-04 23:45:46'),
-(270, 18, 10, 5, '2024-12-04 23:45:46'),
-(271, 18, 11, 4, '2024-12-04 23:45:46'),
-(272, 18, 12, 3, '2024-12-04 23:45:46'),
-(273, 18, 13, 4, '2024-12-04 23:45:46'),
-(274, 18, 14, 4, '2024-12-04 23:45:46'),
-(275, 18, 15, 3, '2024-12-04 23:45:46'),
-(276, 18, 16, 4, '2024-12-04 23:45:46'),
-(277, 18, 17, 4, '2024-12-04 23:45:46'),
-(278, 18, 18, 4, '2024-12-04 23:45:46'),
-(279, 18, 19, 5, '2024-12-04 23:45:46'),
-(280, 18, 21, 5, '2024-12-04 23:45:46'),
-(281, 19, 1, 5, '2024-12-05 01:03:04'),
-(282, 19, 2, 4, '2024-12-05 01:03:04'),
-(283, 19, 3, 5, '2024-12-05 01:03:04'),
-(284, 19, 4, 4, '2024-12-05 01:03:04'),
-(285, 19, 5, 5, '2024-12-05 01:03:04'),
-(286, 19, 6, 4, '2024-12-05 01:03:04'),
-(287, 19, 7, 5, '2024-12-05 01:03:04'),
-(288, 19, 8, 4, '2024-12-05 01:03:04'),
-(289, 19, 9, 5, '2024-12-05 01:03:04'),
-(290, 19, 10, 4, '2024-12-05 01:03:04'),
-(291, 19, 11, 5, '2024-12-05 01:03:04'),
-(292, 19, 12, 4, '2024-12-05 01:03:04'),
-(293, 19, 13, 5, '2024-12-05 01:03:04'),
-(294, 19, 14, 4, '2024-12-05 01:03:04'),
-(295, 19, 15, 5, '2024-12-05 01:03:04'),
-(296, 19, 16, 4, '2024-12-05 01:03:04'),
-(297, 19, 17, 5, '2024-12-05 01:03:04'),
-(298, 19, 18, 4, '2024-12-05 01:03:04'),
-(299, 19, 19, 5, '2024-12-05 01:03:04'),
-(300, 19, 21, 4, '2024-12-05 01:03:04');
+(541, 32, 1, 5, '2024-12-10 17:08:29'),
+(542, 32, 2, 4, '2024-12-10 17:08:29'),
+(543, 32, 3, 5, '2024-12-10 17:08:29'),
+(544, 32, 4, 4, '2024-12-10 17:08:29'),
+(545, 32, 5, 5, '2024-12-10 17:08:29'),
+(546, 32, 6, 5, '2024-12-10 17:08:29'),
+(547, 32, 7, 5, '2024-12-10 17:08:29'),
+(548, 32, 8, 5, '2024-12-10 17:08:29'),
+(549, 32, 9, 5, '2024-12-10 17:08:29'),
+(550, 32, 10, 5, '2024-12-10 17:08:29'),
+(551, 32, 11, 5, '2024-12-10 17:08:29'),
+(552, 32, 12, 5, '2024-12-10 17:08:29'),
+(553, 32, 13, 5, '2024-12-10 17:08:29'),
+(554, 32, 14, 5, '2024-12-10 17:08:29'),
+(555, 32, 15, 5, '2024-12-10 17:08:29'),
+(556, 32, 16, 5, '2024-12-10 17:08:29'),
+(557, 32, 17, 5, '2024-12-10 17:08:29'),
+(558, 32, 18, 5, '2024-12-10 17:08:29'),
+(559, 32, 19, 5, '2024-12-10 17:08:29'),
+(560, 32, 21, 5, '2024-12-10 17:08:29'),
+(561, 33, 1, 5, '2024-12-10 17:09:10'),
+(562, 33, 2, 5, '2024-12-10 17:09:10'),
+(563, 33, 3, 5, '2024-12-10 17:09:10'),
+(564, 33, 4, 5, '2024-12-10 17:09:10'),
+(565, 33, 5, 5, '2024-12-10 17:09:10'),
+(566, 33, 6, 5, '2024-12-10 17:09:10'),
+(567, 33, 7, 5, '2024-12-10 17:09:10'),
+(568, 33, 8, 5, '2024-12-10 17:09:10'),
+(569, 33, 9, 5, '2024-12-10 17:09:10'),
+(570, 33, 10, 5, '2024-12-10 17:09:10'),
+(571, 33, 11, 5, '2024-12-10 17:09:10'),
+(572, 33, 12, 5, '2024-12-10 17:09:10'),
+(573, 33, 13, 5, '2024-12-10 17:09:10'),
+(574, 33, 14, 5, '2024-12-10 17:09:10'),
+(575, 33, 15, 5, '2024-12-10 17:09:10'),
+(576, 33, 16, 5, '2024-12-10 17:09:10'),
+(577, 33, 17, 5, '2024-12-10 17:09:10'),
+(578, 33, 18, 5, '2024-12-10 17:09:10'),
+(579, 33, 19, 5, '2024-12-10 17:09:10'),
+(580, 33, 21, 5, '2024-12-10 17:09:10');
 
 -- --------------------------------------------------------
 
@@ -454,18 +326,24 @@ INSERT INTO `ratings` (`ratings_id`, `eval_id`, `ques_id`, `rate_id`, `date_crea
 CREATE TABLE `section` (
   `section_id` int(11) NOT NULL,
   `sections` varchar(11) NOT NULL,
-  `status` enum('Active','Archived') DEFAULT 'Active'
+  `status` enum('Active','Archived') DEFAULT 'Active',
+  `dep_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `section`
 --
 
-INSERT INTO `section` (`section_id`, `sections`, `status`) VALUES
-(1, 'A', 'Active'),
-(2, 'B', 'Active'),
-(3, 'C', 'Active'),
-(4, 'D', 'Active');
+INSERT INTO `section` (`section_id`, `sections`, `status`, `dep_id`) VALUES
+(2, 'B', 'Active', 1),
+(5, 'G', 'Active', 1),
+(6, 'A', 'Active', 2),
+(7, 'A', 'Active', 1),
+(8, 'C', 'Active', 1),
+(9, 'C', 'Active', 1),
+(10, 'D', 'Active', 1),
+(11, 'A', 'Active', 1),
+(12, 'B', 'Active', 1);
 
 -- --------------------------------------------------------
 
@@ -565,8 +443,11 @@ INSERT INTO `users` (`user_id`, `fname`, `mname`, `lname`, `suffixname`, `contac
 (63, 'Gaylea', NULL, 'De Jesusa', NULL, '9232451234', 7, 'Highway 1', 'Pag asa', 'Talavera', 'Nueva Ecija', '8', '1984-05-05', 'Male', 'Instructor', 'gayle@gmail.com', '$2y$10$VIcWlDxV0p6RuF2tqFr2ReqnfbbH3snoTgEILcVuVmchNp4Kn1Onu', 0),
 (64, 'Camilloa', NULL, 'Villavizaa', NULL, '9764562534', 1, 'j', 'Jasj', 'cabanatuan', 'Nueva Ecija', '9', '1993-07-03', 'Male', 'Instructor', 'camillo@gmail.com', '$2y$10$jOjpiU65lHZA3JikFE0IgOTHVcojhUz/EyG/h2HJrB4NsmK8CPq6u', 0),
 (67, 'CHIE', NULL, 'chay', NULL, '9876234567', 12, 'Zone 2', 'Pinagpanaan', 'Talavera', 'Nueva Ecija', '3112', '1999-03-09', 'Male', 'Instructor', 'chiechay111@gmail.com', '$2y$10$o9YhtpIZDjo.gNUYbOiEJuxmFakwiyZq0H9JzD2I/eYWtjs9QOpRi', 0),
-(69, 'Clint', NULL, 'Casil', NULL, '9282877890', 1, 'w', 'Sta Rita', 'Sto Domingo', 'Nueva Ecija', '3133', '2003-07-09', 'Male', 'Student', 'rcanlas012003@gmail.com ', '$2y$10$gdLBzV7orFb/aQesuJI2w.lzByPKx75i4Sf7V5bi05aZShkxayuVS', 0),
-(70, 'Bain', NULL, 'Hansly', NULL, '9282877890', 1, 'w', 'Sta Rita', 'Sto Domingo', 'Nueva Ecija', '3133', '2003-07-09', 'Male', 'Student', 'villacillomarchie@gmail.com', '$2y$10$yJL8D.IuD/Hp1fw4a.r2CegFSzxMa7wobqRm7vKCVF4ZBgeiMgEDS', 0);
+(69, 'Clint', NULL, 'Casil', NULL, '9282877890', 1, 'w', 'Sta Rita', 'Sto Domingo', 'Nueva Ecija', '3133', '2003-07-09', 'Male', 'Student', 'rcanlas012003@gmail.com ', '$2y$10$gPSiw4Csme5Vg45DVMiEPuEv9Zhxa5XoQD12SSoXaD9A.Qo9U3anu', 0),
+(70, 'Bain', '', 'Hansly', '', '9282877890', 1, 'w', 'Sta Rita', 'Sto Domingo', 'Nueva Ecija', '3133', '2003-07-09', 'Male', 'Student', 'villacillomarchie@gmail.com', '$2y$10$Ckb9cTxtR8s8PFhQ8WgMbudpTg9rJr7oL.C9mSO6OTiVZT7nj.hIi', 0),
+(72, 'Clarence', 'Omana', 'Villacillo', 'Jr', '09719989313', 13822, 'NE AirPorT wAy', 'santor', 'portland', 'OR', '3128', '2024-12-06', 'Male', 'Student', 'clarencesk8@gmail.com', '$2y$10$PWkJ6NsiIazRwr6T324V8.Xhs5LWDwUGtb5g.jLBoVa8L7SjHY8RK', 0),
+(73, 'Bitch Nigga', 'Omana', 'Canlas', 'Jr', '09511018949', 13822, 'NE AirPorT wAy', '', 'Bongabon', 'Nueva Ecija', '3128', '2024-12-06', 'Male', 'Instructor', 'ilovedonkeys483@gmail.com', '$2y$10$ToXTvoZq/gaPuNRWrQ1reeFhYiIO.GJ6VI3Q1BelSRxMdF2q/k6KO', 0),
+(76, 'Ralph Ashley', 'Omana', 'O. Canlas', '', '09511018949', 13822, 'NE AirPorT wAy', '', 'Bongabon', 'Nueva Ecija', '3128', '2024-12-08', 'Male', 'Admin', 'floresjohnalber19@gmail.com', '$2y$10$bUMQsdcXNTH0p0VMuYLNd.NCmikD8pLckh3rQ/YRgOhw5fjlNGNNq', 0);
 
 -- --------------------------------------------------------
 
@@ -586,7 +467,18 @@ CREATE TABLE `user_class` (
 --
 
 INSERT INTO `user_class` (`user_class_id`, `user_id`, `advisory_class_id`, `isActive`) VALUES
-(1, 18, 1, 1);
+(2, 13, 14, 1),
+(3, 13, 14, 1),
+(4, 13, 14, 1),
+(5, 13, 14, 1),
+(6, 13, 14, 1),
+(7, 13, 14, 1),
+(8, 69, 14, 1),
+(9, 69, 14, 1),
+(10, 69, 14, 1),
+(11, 69, 14, 1),
+(12, 69, 14, 1),
+(13, 69, 14, 1);
 
 -- --------------------------------------------------------
 
@@ -613,9 +505,21 @@ INSERT INTO `user_dep` (`user_dep_id`, `dep_id`, `user_id`, `isActive`, `date_as
 (5, 1, 19, 1, '2024-12-03 00:00:00'),
 (6, 1, 20, 1, '2024-12-03 00:00:00'),
 (7, 2, 21, 1, '2024-12-03 00:00:00'),
-(8, 2, 22, 1, '2024-12-03 00:00:00'),
+(8, 1, 22, 1, '2024-12-03 00:00:00'),
 (9, 2, 61, 1, '2024-12-03 00:00:00'),
-(11, 1, 67, 1, '2024-12-03 00:00:00');
+(11, 1, 67, 1, '2024-12-03 00:00:00'),
+(12, 1, 72, 1, '2024-12-07 00:00:00'),
+(13, 1, 13, 1, '2024-12-07 00:00:00'),
+(14, 1, 62, 1, '2024-12-07 00:00:00'),
+(15, 1, 63, 1, '2024-12-07 00:00:00'),
+(16, 1, 64, 1, '2024-12-07 00:00:00'),
+(17, 1, 73, 1, '2024-12-07 00:00:00'),
+(18, 1, 15, 1, '2024-12-07 00:00:00'),
+(19, 1, 16, 1, '2024-12-07 00:00:00'),
+(20, 2, 47, 1, '2024-12-07 00:00:00'),
+(21, 2, 48, 1, '2024-12-07 00:00:00'),
+(22, 1, 69, 1, '2024-12-07 00:00:00'),
+(23, 1, 70, 1, '2024-12-07 00:00:00');
 
 --
 -- Indexes for dumped tables
@@ -640,18 +544,7 @@ ALTER TABLE `advisory_class`
 -- Indexes for table `class`
 --
 ALTER TABLE `class`
-  ADD PRIMARY KEY (`class_id`),
-  ADD KEY `section_id` (`section_id`);
-
---
--- Indexes for table `class_student`
---
-ALTER TABLE `class_student`
-  ADD PRIMARY KEY (`class_student_id`),
-  ADD KEY `advisory_class_id` (`advisory_class_id`),
-  ADD KEY `dep_id` (`dep_id`),
-  ADD KEY `sub_id` (`sub_id`),
-  ADD KEY `user_id` (`user_id`);
+  ADD PRIMARY KEY (`class_id`);
 
 --
 -- Indexes for table `class_teacher`
@@ -683,6 +576,13 @@ ALTER TABLE `evaluation`
   ADD PRIMARY KEY (`eval_id`),
   ADD KEY `user_id` (`user_id`),
   ADD KEY `class_teacher_id` (`class_teacher_id`);
+
+--
+-- Indexes for table `password_resets`
+--
+ALTER TABLE `password_resets`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`);
 
 --
 -- Indexes for table `question`
@@ -753,31 +653,25 @@ ALTER TABLE `user_dep`
 -- AUTO_INCREMENT for table `acad_year`
 --
 ALTER TABLE `acad_year`
-  MODIFY `ay_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `ay_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `advisory_class`
 --
 ALTER TABLE `advisory_class`
-  MODIFY `advisory_class_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `advisory_class_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `class`
 --
 ALTER TABLE `class`
-  MODIFY `class_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
-
---
--- AUTO_INCREMENT for table `class_student`
---
-ALTER TABLE `class_student`
-  MODIFY `class_student_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `class_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `class_teacher`
 --
 ALTER TABLE `class_teacher`
-  MODIFY `class_teacher_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
+  MODIFY `class_teacher_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
 
 --
 -- AUTO_INCREMENT for table `department`
@@ -795,7 +689,13 @@ ALTER TABLE `dep_sub`
 -- AUTO_INCREMENT for table `evaluation`
 --
 ALTER TABLE `evaluation`
-  MODIFY `eval_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `eval_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
+
+--
+-- AUTO_INCREMENT for table `password_resets`
+--
+ALTER TABLE `password_resets`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `question`
@@ -813,13 +713,13 @@ ALTER TABLE `rate`
 -- AUTO_INCREMENT for table `ratings`
 --
 ALTER TABLE `ratings`
-  MODIFY `ratings_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=301;
+  MODIFY `ratings_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=581;
 
 --
 -- AUTO_INCREMENT for table `section`
 --
 ALTER TABLE `section`
-  MODIFY `section_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `section_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `semester`
@@ -837,19 +737,19 @@ ALTER TABLE `subject`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=72;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=77;
 
 --
 -- AUTO_INCREMENT for table `user_class`
 --
 ALTER TABLE `user_class`
-  MODIFY `user_class_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `user_class_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `user_dep`
 --
 ALTER TABLE `user_dep`
-  MODIFY `user_dep_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `user_dep_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- Constraints for dumped tables
@@ -864,27 +764,12 @@ ALTER TABLE `advisory_class`
   ADD CONSTRAINT `advisory_class_ibfk_3` FOREIGN KEY (`sem_id`) REFERENCES `semester` (`sem_id`) ON DELETE CASCADE;
 
 --
--- Constraints for table `class`
---
-ALTER TABLE `class`
-  ADD CONSTRAINT `class_ibfk_1` FOREIGN KEY (`section_id`) REFERENCES `section` (`section_id`);
-
---
--- Constraints for table `class_student`
---
-ALTER TABLE `class_student`
-  ADD CONSTRAINT `class_student_ibfk_1` FOREIGN KEY (`advisory_class_id`) REFERENCES `advisory_class` (`advisory_class_id`) ON UPDATE NO ACTION,
-  ADD CONSTRAINT `class_student_ibfk_2` FOREIGN KEY (`dep_id`) REFERENCES `department` (`dep_id`) ON UPDATE NO ACTION,
-  ADD CONSTRAINT `class_student_ibfk_3` FOREIGN KEY (`sub_id`) REFERENCES `subject` (`sub_id`) ON UPDATE NO ACTION,
-  ADD CONSTRAINT `class_student_ibfk_4` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON UPDATE NO ACTION;
-
---
 -- Constraints for table `class_teacher`
 --
 ALTER TABLE `class_teacher`
-  ADD CONSTRAINT `class_teacher_ibfk_1` FOREIGN KEY (`advisory_class_id`) REFERENCES `advisory_class` (`advisory_class_id`) ON DELETE CASCADE ON UPDATE NO ACTION,
-  ADD CONSTRAINT `class_teacher_ibfk_2` FOREIGN KEY (`sub_id`) REFERENCES `subject` (`sub_id`) ON DELETE CASCADE ON UPDATE NO ACTION,
-  ADD CONSTRAINT `class_teacher_ibfk_3` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE NO ACTION;
+  ADD CONSTRAINT `class_teacher_ibfk_1` FOREIGN KEY (`advisory_class_id`) REFERENCES `advisory_class` (`advisory_class_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `class_teacher_ibfk_2` FOREIGN KEY (`sub_id`) REFERENCES `subject` (`sub_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `class_teacher_ibfk_3` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `dep_sub`
@@ -892,6 +777,12 @@ ALTER TABLE `class_teacher`
 ALTER TABLE `dep_sub`
   ADD CONSTRAINT `dep_sub_ibfk_1` FOREIGN KEY (`dep_id`) REFERENCES `department` (`dep_id`),
   ADD CONSTRAINT `dep_sub_ibfk_2` FOREIGN KEY (`sub_id`) REFERENCES `subject` (`sub_id`);
+
+--
+-- Constraints for table `password_resets`
+--
+ALTER TABLE `password_resets`
+  ADD CONSTRAINT `password_resets_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`);
 
 --
 -- Constraints for table `ratings`
