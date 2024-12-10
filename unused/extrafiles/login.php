@@ -46,9 +46,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 // Redirect based on role
                 if ($role === 'Student') {
-                    header('Location: student-eval/student_evaluation.php');
+                    header('Location: student_evaluation.php');
                 } elseif ($role === 'Instructor') {
-                    header('Location: instructor-eval/instructor_evaluation.php');
+                    header('Location: instructor_evaluation.php');
                 } else {
                     header('Location: dashboard.php'); // Default redirection for admin
                 }

@@ -5,14 +5,22 @@ if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
     exit;
 }
-$host = 'localhost';
-$dbname = 'cap';
-$username = 'root';
-$password = '';
+// Database connection details
+$host = 'localhost'; // Change to your host
+$dbname = 'cap'; // Change to your database name
+$username = 'root'; // Change to your database username
+$password = ''; // Change to your database password
 
 try {
+    // Create a PDO connection
     $conn = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+    // Fetch instructors (users with role "Instructor")
+    $instructorsQuery = "SELECT user_id, CONCAT(fname, ' ', lname) AS fullname FROM users WHERE user_id NOT IN (SELECT user_id FROM user_dep WHERE isActive = 1) ";
+    $instructorsStmt = $conn->prepare($instructorsQuery);
+    $instructorsStmt->execute();
+    $instructors = $instructorsStmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Fetch departments
     $departmentsQuery = "SELECT dep_id, department FROM department";
@@ -20,51 +28,29 @@ try {
     $departmentsStmt->execute();
     $departments = $departmentsStmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Fetch subjects
-    $subjectsQuery = "SELECT sub_id, subjects FROM subject"; // Adjust query if necessary
-    $subjectsStmt = $conn->prepare($subjectsQuery);
-    $subjectsStmt->execute();
-    $subjects = $subjectsStmt->fetchAll(PDO::FETCH_ASSOC);
-
-
-    // Handle form submission to assign a subject to a department and semester
+    // Handle form submission
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $user_id = $_POST['user_id'];
         $dep_id = $_POST['dep_id'];
-        $sub_id = $_POST['sub_id'];
+        $date_assigned = date('Y-m-d');
+        $isActive = 1;
 
-
-        // Check if the assignment already exists
-        $checkAssignmentQuery = "SELECT * FROM dep_sub WHERE dep_id = :dep_id AND sub_id = :sub_id ";
-        $checkAssignmentStmt = $conn->prepare($checkAssignmentQuery);
-        $checkAssignmentStmt->execute([
+        // Insert assignment into user_dep table
+        $assignQuery = "INSERT INTO user_dep (user_id, dep_id, isActive, date_assigned) VALUES (:user_id, :dep_id, :isActive, :date_assigned)";
+        $assignStmt = $conn->prepare($assignQuery);
+        $assignStmt->execute([
+            ':user_id' => $user_id,
             ':dep_id' => $dep_id,
-            ':sub_id' => $sub_id,
-            // Include semester_id in the check
+            ':isActive' => $isActive,
+            ':date_assigned' => $date_assigned,
         ]);
 
-        if ($checkAssignmentStmt->rowCount() > 0) {
-            echo "<script>alert('This subject is already assigned to the selected department .'); window.location.href = '';</script>";
-        } else {
-            // Insert the assignment
-            $insertDepSubQuery = "
-                INSERT INTO dep_sub (dep_id, sub_id, sem_id) 
-                VALUES (:dep_id, :sub_id)
-            ";
-            $insertDepSubStmt = $conn->prepare($insertDepSubQuery);
-            $insertDepSubStmt->execute([
-                ':dep_id' => $dep_id,
-                ':sub_id' => $sub_id,
-
-            ]);
-
-            echo "<script>alert('Subject successfully assigned to department and semester!'); window.location.href = '';</script>";
-        }
+        echo "<script>alert('Department assigned successfully!'); window.location.href = '';</script>";
     }
 } catch (PDOException $e) {
     die("Connection failed: " . $e->getMessage());
 }
 ?>
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -72,7 +58,7 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Assign Subject to Department</title>
+    <title>Assign Department to Instructor</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -113,9 +99,19 @@ try {
 </head>
 
 <body>
-    <h1>Assign Subject to Department</h1>
+    <h1>Assign Department to Users</h1>
 
     <form method="POST">
+        <label for="user_id">Select Users</label>
+        <select name="user_id" id="user_id" required>
+            <option value="">-- Select Users --</option>
+            <?php foreach ($instructors as $instructor): ?>
+                <option value="<?= htmlspecialchars($instructor['user_id']) ?>">
+                    <?= htmlspecialchars($instructor['fullname']) ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+
         <label for="dep_id">Select Department</label>
         <select name="dep_id" id="dep_id" required>
             <option value="">-- Select Department --</option>
@@ -126,19 +122,7 @@ try {
             <?php endforeach; ?>
         </select>
 
-        <label for="sub_id">Select Subject</label>
-        <select name="sub_id" id="sub_id" required>
-            <option value="">-- Select Subject --</option>
-            <?php foreach ($subjects as $subject): ?>
-                <option value="<?= htmlspecialchars($subject['sub_id']) ?>">
-                    <?= htmlspecialchars($subject['subjects']) ?>
-                </option>
-            <?php endforeach; ?>
-        </select>
-
-
-
-        <button type="submit">Assign Subject to Department</button>
+        <button type="submit">Assign Department</button>
     </form>
 </body>
 

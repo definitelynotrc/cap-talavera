@@ -226,7 +226,7 @@ if ($conn->connect_error) {
 
         </aside>
 
-        <div class="main" style=>
+        <div class="main">
             <?php
             $instructorId = isset($_GET['class_teacher_id']) ? $_GET['class_teacher_id'] : null;
             $instructorName = '';

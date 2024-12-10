@@ -1,187 +1,325 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 session_start();
 $user_id = $_SESSION['user_id'];
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
     exit;
 }
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "cap"; // Replace with your actual database name 'cap'
+include('db.php'); // Query to count the number of students
+$students_query = "SELECT COUNT(*) AS total_students FROM users WHERE role = 'student'";
+$students_stmt = $pdo->
+    prepare($students_query);
+$students_stmt->execute();
+$total_students_row = $students_stmt->fetch(PDO::FETCH_ASSOC);
+$total_students = $total_students_row['total_students'];
 
-// Create connection
-$conn = new mysqli($servername, $username, $password, $dbname);
+// Query to count the number of instructors
+$instructors_query = "SELECT COUNT(*) AS total_instructors FROM users WHERE role = 'instructor'";
+$instructors_stmt = $pdo->prepare($instructors_query);
+$instructors_stmt->execute();
+$total_instructors_row = $instructors_stmt->fetch(PDO::FETCH_ASSOC);
+$total_instructors = $total_instructors_row['total_instructors'];
 
-// Check connection
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
+$allUsersQuery = $instructors_query = "SELECT COUNT(*) AS total_users FROM users";
+$allUsersStmt = $pdo->prepare($allUsersQuery);
+$allUsersStmt->execute();
+$allUsers = $allUsersStmt->fetch(PDO::FETCH_ASSOC);
+$allUsers = $allUsers['total_users'];
 
-// Handle Add subject request (form submission)
-if (isset($_POST['add'])) {
-    $semesters = $_POST['semesters'];
+$studentsPerDepartmentQuery = "
+    SELECT
+    d.department,
+    COUNT(u.user_id) AS total_students
+    FROM
+    user_dep ud
+    JOIN
+    department d ON ud.dep_id = d.dep_id
+    JOIN
+    users u ON ud.user_id = u.user_id
+    WHERE
+    u.role = 'Student'
+    AND d.department = 'BSIT'
+    GROUP BY
+    d.department
+    ";
 
-    // Insert the class into the database
-    $stmt = $conn->prepare("INSERT INTO semester (semesters) VALUES (?)");
-    $stmt->bind_param("s", $semesters);
+$stmt = $pdo->prepare($studentsPerDepartmentQuery);
+$stmt->execute();
+$result = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    // Execute and check for success
-    if ($stmt->execute()) {
-        echo "<script>alert('Semester added successfully!');</script>";
-    } else {
-        echo "Error: " . $stmt->error;
-    }
+$totalStudentsBSIT = !empty($result) ? $result['total_students'] : 0;
 
-    $stmt->close();
-}
+$studentsPerDepartmentQuery = "
+    SELECT
+    d.department,
+    COUNT(u.user_id) AS total_students
+    FROM
+    user_dep ud
+    JOIN
+    department d ON ud.dep_id = d.dep_id
+    JOIN
+    users u ON ud.user_id = u.user_id
+    WHERE
+    u.role = 'Student'
+    AND d.department = 'BEED'
+    GROUP BY
+    d.department
+    ";
 
-// Handle Edit request
-if (isset($_POST['edit'])) {
-    $sem_id = $_POST['sem_id'];
-    $semesters = $_POST['semesters'];
+$stmt = $pdo->prepare($studentsPerDepartmentQuery);
+$stmt->execute();
+$result = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    // Update the subject in the database
-    $stmt = $conn->prepare("UPDATE semester SET semesters=? WHERE sem_id=?");
-    $stmt->bind_param("si", $semesters, $sem_id);  // Bind both parameters: semesters and sem_id
+$totalStudentsBEED = !empty($result) ? $result['total_students'] : 0;
 
-    // Execute and check for success
-    if ($stmt->execute()) {
-        echo "<script>alert('Semester updated successfully!');</script>";
-    } else {
-        echo "Error: " . $stmt->error;
-    }
+$studentsPerDepartmentQuery = "
+    SELECT
+    d.department,
+    COUNT(u.user_id) AS total_students
+    FROM
+    user_dep ud
+    JOIN
+    department d ON ud.dep_id = d.dep_id
+    JOIN
+    users u ON ud.user_id = u.user_id
+    WHERE
+    u.role = 'Student'
+    AND d.department = 'BSBA'
+    GROUP BY
+    d.department
+    ";
 
-    $stmt->close();
-}
+$stmt = $pdo->prepare($studentsPerDepartmentQuery);
+$stmt->execute();
+$result = $stmt->fetch(PDO::FETCH_ASSOC);
 
-// Initialize $subjectToEdit as null
-$semesterToEdit = null;
-$result = null; // Initialize $result
-
-// Check if there is a sem_id parameter for editing
-if (isset($_GET['sem_id'])) {
-    $sem_id = $_GET['sem_id'];
-
-    // Fetch the subject details for editing
-    $stmt = $conn->prepare("SELECT * FROM semester WHERE sem_id = ?");
-    $stmt->bind_param("i", $sem_id);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    // If the subject exists, assign it to $subjectToEdit
-    if ($result->num_rows > 0) {
-        $classToEdit = $result->fetch_assoc();
-    } else {
-        echo "Semester not found.";
-    }
-
-    $stmt->close();
-} else {
-    // Fetch all subjects when no sub_id is provided
-    $stmt = $conn->prepare("SELECT * FROM semester");
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $stmt->close();
-}
-
-
+$totalStudentsBSBA = !empty($result) ? $result['total_students'] : 0;
 
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Semester</title>
-    <link rel="stylesheet" href="sidebar.css">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width-device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="">
     <style>
-        /* Modal styles */
-        .myModal {
-            display: none;
-            /* Hidden by default */
-            position: fixed;
-            /* Stay in place */
-            z-index: 1;
-            /* Sit on top */
-            left: 0;
-            top: 0;
+        @import url("https://font.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap");
+
+        * {
+            font-family: "Ubuntu", sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #f8f9fa;
+        }
+
+
+
+        nav.topbar {
+            background-color: #2A2185;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            height: 60px;
             width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.4);
-            /* Black background with opacity */
+
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: relative;
         }
 
-        .mymodal-content,
-        .modal-content {
-            background-color: #fff;
-            margin: 15% auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
-            height: 40vh;
-            max-width: 400px;
-        }
 
-        .close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-        }
 
-        .close:hover,
-        .close:focus {
-            color: black;
-            text-decoration: none;
+        .toggle {
+            margin-left: 200px;
+            font-size: 1.5rem;
             cursor: pointer;
         }
 
-        .form-group textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
+        .logo a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            text-decoration: none;
+            color: white;
         }
 
-        /* Styling for buttons and form */
-        .form-group {
-            margin-bottom: 15px;
+        aside.navigation {
+            background-color: #2A2185;
+            color: white;
+            width: 200px;
+
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 20px;
+            position: fixed;
+            transition: width 0.3s;
+            top: 0;
+
+
+
         }
 
-        .form-group label {
-            display: block;
+
+        .navigation.collapsed {
+            width: 70px;
+
+        }
+
+
+        .navigation li .icon {
+            margin-right: 10px;
+        }
+
+        .navigation li .title {
+            display: inline-block;
+            transition: opacity 0.3s ease;
+        }
+
+        .navigation.collapsed .title {
+            display: none;
+        }
+
+
+
+        .navigation.collapsed~.main {
+            margin-left: 70px;
+        }
+
+        .navigation ul {
+            list-style-type: none;
+            padding: 0;
+
+        }
+
+        .navigation ul li {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            font-size: 1.1rem;
+            cursor: pointer;
+        }
+
+        .navigation ul li a {
+            color: white;
+            text-decoration: none;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+
+        }
+
+        .instructorDropdown,
+        .studentDropdown,
+        .departmentDropdown {
+            display: none;
+            list-style-type: none;
+            padding: 0;
+            margin-left: 20px;
+        }
+
+        .instructorDropdown ul li,
+        .studentDropdown ul li,
+        .departmentDropdown ul li {
             margin-bottom: 5px;
         }
 
-        .form-group select {
+
+        .instructorDropdown ul li a,
+        .studentDropdown ul li a,
+        .departmentDropdown ul li a {
+            color: white;
+            text-decoration: none;
+            font-size: 0.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .instructorDropdown ul li a span,
+        .studentDropdown ul li a span,
+        .departmentDropdown ul li a span {
+            margin-left: 10px;
+
+
+        }
+
+        #instructor,
+        #student,
+        #department {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .main {
+            padding: 20px;
+            margin-left: 200px;
+            transition: margin-left 0.3s;
             width: 100%;
+
+        }
+
+        .container {
+            display: flex;
+            width: 100%;
+            flex-direction: row;
+        }
+
+        .user {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .dropdown-btn {
+            background-color: transparent;
+
+            border: none;
+            cursor: pointer;
+        }
+
+        .dropdown-btn img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+        }
+
+        .dropdown-content {
+
+            position: absolute;
+            background-color: #f9f9f9;
+            min-width: 160px;
+            box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
+            z-index: 1;
+            right: 10px;
+            display: flex;
+            flex-direction: column;
             padding: 10px;
-            border: 1px solid #ccc;
             border-radius: 5px;
+            margin: 10px 0;
         }
 
-        button[type="submit"] {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            cursor: pointer;
-        }
-
-        button[type="submit"]:hover {
-            background-color: #45a049;
-        }
-
-        #addSubBtn {
-            background-color: transparent !important;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            cursor: pointer;
-            border-radius: 5px;
+        .dropdown-content a {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            text-align: left;
         }
     </style>
 </head>
@@ -435,105 +573,171 @@ if (isset($_GET['sem_id'])) {
         </aside>
         <div class="main">
 
-            <button id="addSubBtn">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8 12H16" stroke="#292D32" stroke-width="1.5" stroke-linecap="round"
-                        stroke-linejoin="round" />
-                    <path d="M12 16V8" stroke="#292D32" stroke-width="1.5" stroke-linecap="round"
-                        stroke-linejoin="round" />
-                    <path d="M9 22H15C20 22 22 20 22 15V9C22 4 20 2 15 2H9C4 2 2 4 2 9V15C2 20 4 22 9 22Z"
-                        stroke="#292D32" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
-
-            </button>
 
 
-            <h2> Semester</h2>
+            <div class="cardBox" style="display: flex; gap: 10px; flex-wrap: wrap; ">
+                <!-- Static Cards -->
+                <div class="card"
+                    style="background-color: #2A2185; color: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); text-align: center; flex: 1; min-width: 250px; max-width: 300px;">
+                    <div>
+                        <div class="numbers" style="font-size: 2rem; font-weight: bold; color: white;">
+                            <?php echo $total_students; ?>
+                        </div>
+                        <div class="cardName" style="font-size: 1.2rem; margin-top: 10px;">Total Students</div>
+                    </div>
+                </div>
 
-            <div class="table-wrapper">
-                <table class="table table-bordered">
+                <div class="card"
+                    style="background-color: #2A2185; color: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); text-align: center; flex: 1; min-width: 250px; max-width: 300px;">
+                    <div>
+                        <div class="numbers" style="font-size: 2rem; font-weight: bold; color: white;">
+                            <?php echo $total_instructors; ?>
+                        </div>
+                        <div class="cardName" style="font-size: 1.2rem; margin-top: 10px;">Total Instructors</div>
+                    </div>
+                </div>
+
+                <div class="card"
+                    style="background-color: #2A2185; color: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); text-align: center; flex: 1; min-width: 250px; max-width: 300px;">
+                    <div>
+                        <div class="numbers" style="font-size: 2rem; font-weight: bold; color: white;">
+                            <?php echo $allUsers; ?>
+                        </div>
+                        <div class="cardName" style="font-size: 1.2rem; margin-top: 10px;">Total Users</div>
+                    </div>
+                </div>
+            </div>
+            <?php
+            // Query to fetch the highest evaluation rating
+            $highestEvaluationQuery = "
+    SELECT 
+        e.eval_id,
+        e.remarks,
+        e.rate_result,
+        e.date_created,
+        u.fname AS instructor_fname,
+        u.lname AS instructor_lname,
+        ct.teacher_type
+    FROM evaluation e
+    JOIN class_teacher ct ON e.class_teacher_id = ct.class_teacher_id
+    JOIN users u ON ct.user_id = u.user_id
+    ORDER BY e.rate_result DESC
+    LIMIT 1
+";
+
+            $stmt = $pdo->prepare($highestEvaluationQuery);
+            $stmt->execute(); // No need to bind parameters here since the query doesn't have placeholders.
+            $highestEvaluation = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            // Fetch recent evaluations for the table
+            $recentEvaluationsQuery = "
+    SELECT 
+        e.eval_id,
+        e.remarks,
+        e.rate_result,
+        e.date_created,
+        u.fname AS instructor_fname,
+        u.lname AS instructor_lname,
+        ct.teacher_type
+    FROM evaluation e
+    JOIN class_teacher ct ON e.class_teacher_id = ct.class_teacher_id
+    JOIN users u ON ct.user_id = u.user_id
+    ORDER BY e.date_created DESC
+    LIMIT 10
+";
+
+            $stmt = $pdo->prepare($recentEvaluationsQuery);
+            $stmt->execute();
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Display highest evaluation
+            if ($highestEvaluation): ?>
+                <div
+                    style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #ddd; margin-top: 20px; margin-bottom: 30px;">
+                    <h3 style="font-size: 1.6rem; color: #2A2185; font-weight: bold; margin-bottom: 15px;">Highest
+                        Evaluation</h3>
+                    <p style="font-size: 1.1rem; color: #333; line-height: 1.6;">
+                        <strong style="color: #2A2185;">Instructor:</strong>
+                        <?php echo $highestEvaluation['instructor_fname'] . ' ' . $highestEvaluation['instructor_lname']; ?><br>
+                        <strong style="color: #2A2185;">Teacher Type:</strong>
+                        <?php echo $highestEvaluation['teacher_type']; ?><br>
+                        <strong style="color: #2A2185;">Overall Rating:</strong>
+                        <?php echo $highestEvaluation['rate_result']; ?><br>
+
+                    </p>
+                </div>
+            <?php endif; ?>
+
+
+            <?php
+            // Query to fetch recently evaluated instructors
+            $recentEvaluationsQuery = "
+    SELECT 
+        e.eval_id,
+        e.transaction_code,
+        e.remarks,
+        e.rate_result,
+        e.date_created,
+        u.fname AS instructor_fname,
+        u.lname AS instructor_lname,
+        ct.teacher_type
+    FROM evaluation e
+    JOIN class_teacher ct ON e.class_teacher_id = ct.class_teacher_id
+    JOIN users u ON ct.user_id = u.user_id
+    ORDER BY e.date_created DESC
+    LIMIT 10
+";
+
+            $stmt = $pdo->prepare($recentEvaluationsQuery);
+            $stmt->execute(); // No need to bind parameters here since the query doesn't have placeholders.
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            if (count($result) > 0): ?>
+                <table style="width: 100%; border-collapse: collapse; margin-top: 20px; ">
+                    <caption style="font-size: 1.2rem; font-weight: bold; margin-bottom: 10px;">Recent Evaluations
+                    </caption>
                     <thead>
-                        <tr>
-                            <th>Semester</th>
-                            <th>Actions</th>
+                        <tr style="background-color: #2A2185; color: white;">
+                            <th style="padding: 10px; border: 1px solid #ddd;">Transaction Code</th>
+                            <th style="padding: 10px; border: 1px solid #ddd;">Instructor</th>
+                            <th style="padding: 10px; border: 1px solid #ddd;">Teacher Type</th>
+                            <th style="padding: 10px; border: 1px solid #ddd;">Remarks</th>
+                            <th style="padding: 10px; border: 1px solid #ddd;">Rating</th>
+                            <th style="padding: 10px; border: 1px solid #ddd;">Date Evaluated</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php if (isset($result) && $result->num_rows > 0): ?>
-                            <?php while ($row = $result->fetch_assoc()): ?>
-                                <tr>
-                                    <td><?php echo htmlspecialchars($row['semesters']); ?></td>
-                                    <td>
-                                        <button class="btn btn-success edit-btn" onclick="openEditModal(
-                                    <?php echo $row['sem_id']; ?>,
-                                    '<?php echo htmlspecialchars($row['semesters'], ENT_QUOTES); ?>'
-                                )">Edit</button>
-                                    </td>
-                                </tr>
-                            <?php endwhile; ?>
-                        <?php else: ?>
+                        <?php foreach ($result as $row): ?>
                             <tr>
-                                <td colspan="2">No semester found</td>
+                                <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
+                                    <?php echo $row['transaction_code']; ?>
+                                </td>
+                                <td style="padding: 10px; border: 1px solid #ddd;">
+                                    <?php echo $row['instructor_fname'] . ' ' . $row['instructor_lname']; ?>
+                                </td>
+                                <td style="padding: 10px; border: 1px solid #ddd;"><?php echo $row['teacher_type']; ?></td>
+                                <td style="padding: 10px; border: 1px solid #ddd;"><?php echo $row['remarks']; ?></td>
+                                <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
+                                    <?php echo $row['rate_result']; ?>
+                                </td>
+                                <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
+                                    <?php echo date("F j, Y, g:i a", strtotime($row['date_created'])); ?>
+                                </td>
                             </tr>
-                        <?php endif; ?>
+                        <?php endforeach; ?>
                     </tbody>
                 </table>
-            </div>
+            <?php else: ?>
+                <p style="margin-top: 20px;">No recent evaluations found.</p>
+            <?php endif; ?>
 
         </div>
-    </div>
-    <div id="myModal" class="myModal">
-        <div class="mymodal-content">
-            <span class="close">&times;</span>
-            <h2 class="form-title"><?php echo isset($classsToEdit) ? 'Edit' : 'Add'; ?> Class</h2>
 
-
-
-            <form action="semester.php" method="POST">
-                <!-- Hidden ID field for editing -->
-                <?php if ($semesterToEdit): ?>
-                    <input type="hidden" name="sem_id" value="<?php echo $semesterToEdit['sem_id']; ?>">
-                <?php endif; ?>
-
-                <div class="form-group">
-                    <label for="semesters" class="form-label">Year Level </label>
-                    <input type="text" name="semesters" id="semesters" class="form-input"
-                        value="<?php echo $semesterToEdit ? htmlspecialchars($semesterToEdit['semesters']) : ''; ?>"
-                        placeholder="Enter semester" required>
-                </div>
-                <button type="submit" name="add"
-                    class="submit-btn"><?php echo isset($semesterToEdit) ? 'Update' : 'Add'; ?>
-                    Semester</button>
-            </form>
-        </div>
-    </div>
-    <!-- Edit subject Modal -->
-    <!-- Edit Subject Modal -->
-    <div id="editModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeEditModal()">&times;</span>
-            <h2>Edit semester</h2>
-            <form action="semester.php" method="POST" class="edit-form">
-                <input type="hidden" id="editSemId" name="sem_id" class="form-input">
-
-                <div class="form-group">
-                    <label for="semesters">Semester:</label>
-                    <input type="text" id="editSemesters" name="semesters" class="form-input" required>
-                </div>
-
-
-
-                <button type="submit" name="edit" class="submit-btn">Update Subject</button>
-            </form>
-        </div>
     </div>
 
-    <!-- 
-<script src="main.js"></script>
-<script src="https://unpkg.com/ionicons@4.5.10-0/dist/ionicons.js"></script> -->
 
     <script>
-        // JavaScript to handle opening and closing the modal
+
         const toggle = document.querySelector('.toggle');
         const navigation = document.querySelector('.navigation');
 
@@ -564,38 +768,9 @@ if (isset($_GET['sem_id'])) {
             const sidebar = document.querySelector('.navigation');
             sidebar.classList.toggle('collapsed');
         }
-        // JavaScript to handle opening and closing the modal
-
-        function openEditModal(sem_id, semesters) {
-            // Ensure all the inputs are updated with the existing data
-            document.getElementById('editSemId').value = sem_id;
-            document.getElementById('editSemesters').value = semesters;
-
-            // Display the modal
-            document.getElementById('editModal').style.display = 'block';
-        }
-
-        function closeEditModal() {
-            document.getElementById('editModal').style.display = 'none';
-        }
-
-        // Open modal for adding new class
-        var modal = document.getElementById("myModal");
-        var btn = document.getElementById("addSubBtn");
-        var span = document.getElementsByClassName("close")[0];
-
-        // Open modal for adding subject
-        btn.onclick = function () {
-            modal.style.display = "block";
-        }
-
-        // Close modal when clicking the close button
-        span.onclick = function () {
-            modal.style.display = "none";
-        }
-
-
     </script>
+
+
 
 </body>
 
