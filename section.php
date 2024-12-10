@@ -43,14 +43,19 @@ $sectionToEdit = null;
 // Fetch section data for editing (make sure to fetch the class_id as well)
 if (isset($_GET['section_id'])) {
     $section_id = $_GET['section_id'];
-    $stmt = $conn->prepare("SELECT * FROM section s
-                            INNER JOIN class c ON s.class_id = c.class_id
-                            WHERE s.section_id = ?");
+
+    $stmt = $conn->prepare("
+    SELECT * 
+    FROM section s
+    INNER JOIN class c ON c.section_id = s.section_id
+    WHERE s.section_id = ?
+");
     $stmt->bind_param("i", $section_id);
     $stmt->execute();
     $result = $stmt->get_result();
     $sectionToEdit = $result->fetch_assoc();
     $stmt->close();
+
 }
 
 // Handle Archive request
