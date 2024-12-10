@@ -427,7 +427,7 @@ $totalStudentsBSBA = !empty($result) ? $result['total_students'] : 0;
                     </div>
                     <ul class="instructorDropdown">
                         <li><a href="instructor.php">Manage Instructors</a></li>
-                        <li><a href="manage_subject.php">Instructor Subjects</a></li>
+                        <li><a href="class_teacher.php">Instructor Subjects</a></li>
                     </ul>
                 </li>
                 <li id="student" onclick="showStudentDropdown()">
@@ -454,7 +454,7 @@ $totalStudentsBSBA = !empty($result) ? $result['total_students'] : 0;
                     </div>
                     <ul class="studentDropdown">
                         <li><a href="student.php">Manage Students</a></li>
-                        <li><a href="manage_sub_student.php">Student Sections</a></li>
+                        <li><a href="add_subject_student.php">Student Sections</a></li>
                     </ul>
                 </li>
                 <li id="admin">
@@ -510,6 +510,9 @@ $totalStudentsBSBA = !empty($result) ? $result['total_students'] : 0;
                         </li>
                         <li>
                             <a href="acad_year.php">Manage Academic Year</a>
+                        </li>
+                        <li>
+                            <a href="advisory_class.php">Manage Advisory Class</a>
                         </li>
                     </ul>
                 </li>
@@ -640,23 +643,13 @@ $totalStudentsBSBA = !empty($result) ? $result['total_students'] : 0;
                 foreach ($yearLevels as $yearLevel) {
                     try {
                         // Prepare the query to count unique subjects per year level
-                        $query = "
-                SELECT 
-                    c.year_level,
-                    COUNT(DISTINCT sub.sub_id) AS unique_subject_count
-                FROM 
-                    class c
-                JOIN 
-                    section s ON c.class_id = s.class_id
-                JOIN 
-                    section_subjec ss ON s.section_id = ss.section_id
-                JOIN 
-                    subject sub ON ss.sub_id = sub.sub_id
-                WHERE 
-                    c.year_level = ?
-                GROUP BY 
-                    c.year_level
-            ";
+                        $query = "SELECT COUNT(DISTINCT subject.sub_id) AS unique_subject_count
+          FROM subject
+          JOIN class_teacher ON subject.sub_id = class_teacher.sub_id
+          JOIN advisory_class ON class_teacher.advisory_class_id = advisory_class.advisory_class_id
+          JOIN class ON advisory_class.class_id = class.class_id
+          WHERE class.year_level = ?";
+
 
                         // Prepare the statement
                         $stmt = $pdo->prepare($query);
@@ -667,11 +660,8 @@ $totalStudentsBSBA = !empty($result) ? $result['total_students'] : 0;
                         // Execute the query
                         $stmt->execute();
 
-                        // Fetch the result
-                        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-
-                        // Get the count of unique subjects
-                        $uniqueSubjectCount = $result['unique_subject_count'] ?? 0;
+                        // Fetch the result directly as the count of unique subjects
+                        $uniqueSubjectCount = $stmt->fetchColumn() ?? 0;
                     } catch (PDOException $e) {
                         echo "Error: " . $e->getMessage();
                         die();
@@ -685,7 +675,6 @@ $totalStudentsBSBA = !empty($result) ? $result['total_students'] : 0;
                         <div>
                             <div class="numbers" style="font-size: 1.9rem; font-weight: bold; color: white;">
                                 Year level <?php echo htmlspecialchars($yearLevel); ?>
-
                             </div>
                             <div class="cardName" style="font-size: 1.2rem; margin-top: 10px;">
                                 <?php echo $uniqueSubjectCount; ?> Subjects
@@ -694,11 +683,11 @@ $totalStudentsBSBA = !empty($result) ? $result['total_students'] : 0;
                     </div>
 
                 <?php } ?>
-            </div>
 
-            <?php
-            // Query to fetch the highest evaluation rating
-            $highestEvaluationQuery = "
+
+                <?php
+                // Query to fetch the highest evaluation rating
+                $highestEvaluationQuery = "
     SELECT 
         e.eval_id,
         e.remarks,
@@ -714,12 +703,12 @@ $totalStudentsBSBA = !empty($result) ? $result['total_students'] : 0;
     LIMIT 1
 ";
 
-            $stmt = $pdo->prepare($highestEvaluationQuery);
-            $stmt->execute(); // No need to bind parameters here since the query doesn't have placeholders.
-            $highestEvaluation = $stmt->fetch(PDO::FETCH_ASSOC);
+                $stmt = $pdo->prepare($highestEvaluationQuery);
+                $stmt->execute(); // No need to bind parameters here since the query doesn't have placeholders.
+                $highestEvaluation = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            // Fetch recent evaluations for the table
-            $recentEvaluationsQuery = "
+                // Fetch recent evaluations for the table
+                $recentEvaluationsQuery = "
     SELECT 
         e.eval_id,
         e.remarks,
@@ -735,32 +724,32 @@ $totalStudentsBSBA = !empty($result) ? $result['total_students'] : 0;
     LIMIT 10
 ";
 
-            $stmt = $pdo->prepare($recentEvaluationsQuery);
-            $stmt->execute();
-            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $stmt = $pdo->prepare($recentEvaluationsQuery);
+                $stmt->execute();
+                $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            // Display highest evaluation
-            if ($highestEvaluation): ?>
-                <div
-                    style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #ddd; margin-top: 20px; margin-bottom: 30px;">
-                    <h3 style="font-size: 1.6rem; color: #2A2185; font-weight: bold; margin-bottom: 15px;">Highest
-                        Evaluation</h3>
-                    <p style="font-size: 1.1rem; color: #333; line-height: 1.6;">
-                        <strong style="color: #2A2185;">Instructor:</strong>
-                        <?php echo $highestEvaluation['instructor_fname'] . ' ' . $highestEvaluation['instructor_lname']; ?><br>
-                        <strong style="color: #2A2185;">Teacher Type:</strong>
-                        <?php echo $highestEvaluation['teacher_type']; ?><br>
-                        <strong style="color: #2A2185;">Overall Rating:</strong>
-                        <?php echo $highestEvaluation['rate_result']; ?><br>
+                // Display highest evaluation
+                if ($highestEvaluation): ?>
+                    <div
+                        style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #ddd; margin-top: 20px; margin-bottom: 30px;">
+                        <h3 style="font-size: 1.6rem; color: #2A2185; font-weight: bold; margin-bottom: 15px;">Highest
+                            Evaluation</h3>
+                        <p style="font-size: 1.1rem; color: #333; line-height: 1.6;">
+                            <strong style="color: #2A2185;">Instructor:</strong>
+                            <?php echo $highestEvaluation['instructor_fname'] . ' ' . $highestEvaluation['instructor_lname']; ?><br>
+                            <strong style="color: #2A2185;">Teacher Type:</strong>
+                            <?php echo $highestEvaluation['teacher_type']; ?><br>
+                            <strong style="color: #2A2185;">Overall Rating:</strong>
+                            <?php echo $highestEvaluation['rate_result']; ?><br>
 
-                    </p>
-                </div>
-            <?php endif; ?>
+                        </p>
+                    </div>
+                <?php endif; ?>
 
 
-            <?php
-            // Query to fetch recently evaluated instructors
-            $recentEvaluationsQuery = "
+                <?php
+                // Query to fetch recently evaluated instructors
+                $recentEvaluationsQuery = "
     SELECT 
         e.eval_id,
         e.transaction_code,
@@ -777,90 +766,88 @@ $totalStudentsBSBA = !empty($result) ? $result['total_students'] : 0;
     LIMIT 10
 ";
 
-            $stmt = $pdo->prepare($recentEvaluationsQuery);
-            $stmt->execute(); // No need to bind parameters here since the query doesn't have placeholders.
-            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $stmt = $pdo->prepare($recentEvaluationsQuery);
+                $stmt->execute(); // No need to bind parameters here since the query doesn't have placeholders.
+                $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            if (count($result) > 0): ?>
-                <table style="width: 100%; border-collapse: collapse; margin-top: 20px; ">
-                    <caption style="font-size: 1.2rem; font-weight: bold; margin-bottom: 10px;">Recent Evaluations
-                    </caption>
-                    <thead>
-                        <tr style="background-color: #2A2185; color: white;">
-                            <th style="padding: 10px; border: 1px solid #ddd;">Transaction Code</th>
-                            <th style="padding: 10px; border: 1px solid #ddd;">Instructor</th>
-                            <th style="padding: 10px; border: 1px solid #ddd;">Teacher Type</th>
-                            <th style="padding: 10px; border: 1px solid #ddd;">Remarks</th>
-                            <th style="padding: 10px; border: 1px solid #ddd;">Rating</th>
-                            <th style="padding: 10px; border: 1px solid #ddd;">Date Evaluated</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($result as $row): ?>
-                            <tr>
-                                <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
-                                    <?php echo $row['transaction_code']; ?>
-                                </td>
-                                <td style="padding: 10px; border: 1px solid #ddd;">
-                                    <?php echo $row['instructor_fname'] . ' ' . $row['instructor_lname']; ?>
-                                </td>
-                                <td style="padding: 10px; border: 1px solid #ddd;"><?php echo $row['teacher_type']; ?></td>
-                                <td style="padding: 10px; border: 1px solid #ddd;"><?php echo $row['remarks']; ?></td>
-                                <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
-                                    <?php echo $row['rate_result']; ?>
-                                </td>
-                                <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
-                                    <?php echo date("F j, Y, g:i a", strtotime($row['date_created'])); ?>
-                                </td>
+                if (count($result) > 0): ?>
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 20px; ">
+                        <caption style="font-size: 1.2rem; font-weight: bold; margin-bottom: 10px;">Recent Evaluations
+                        </caption>
+                        <thead>
+                            <tr style="background-color: #2A2185; color: white;">
+                                <th style="padding: 10px; border: 1px solid #ddd;">Transaction Code</th>
+                                <th style="padding: 10px; border: 1px solid #ddd;">Instructor</th>
+                                <th style="padding: 10px; border: 1px solid #ddd;">Teacher Type</th>
+                                <th style="padding: 10px; border: 1px solid #ddd;">Remarks</th>
+                                <th style="padding: 10px; border: 1px solid #ddd;">Rating</th>
+                                <th style="padding: 10px; border: 1px solid #ddd;">Date Evaluated</th>
                             </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            <?php else: ?>
-                <p style="margin-top: 20px;">No recent evaluations found.</p>
-            <?php endif; ?>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($result as $row): ?>
+                                <tr>
+                                    <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
+                                        <?php echo $row['transaction_code']; ?>
+                                    </td>
+                                    <td style="padding: 10px; border: 1px solid #ddd;">
+                                        <?php echo $row['instructor_fname'] . ' ' . $row['instructor_lname']; ?>
+                                    </td>
+                                    <td style="padding: 10px; border: 1px solid #ddd;"><?php echo $row['teacher_type']; ?></td>
+                                    <td style="padding: 10px; border: 1px solid #ddd;"><?php echo $row['remarks']; ?></td>
+                                    <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
+                                        <?php echo $row['rate_result']; ?>
+                                    </td>
+                                    <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
+                                        <?php echo date("F j, Y, g:i a", strtotime($row['date_created'])); ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                <?php else: ?>
+                    <p style="margin-top: 20px;">No recent evaluations found.</p>
+                <?php endif; ?>
+
+            </div>
 
         </div>
 
-    </div>
 
+        <script>
 
-    <script>
+            const toggle = document.querySelector('.toggle');
+            const navigation = document.querySelector('.navigation');
 
+            toggle.addEventListener('click', () => {
+                navigation.classList.toggle('active');
+            });
 
-        const toggle = document.querySelector('.toggle');
-        const navigation = document.querySelector('.navigation');
+            function toggleUser() {
+                const userDropdown = document.querySelector('.dropdown-content');
+                userDropdown.style.display = userDropdown.style.display === 'none' ? 'block' : 'none';
+            }
+            function showInstructorDropdown() {
+                const instructorDropdown = document.querySelector('.instructorDropdown');
+                instructorDropdown.style.display = instructorDropdown.style.display === 'none' ? 'block' : 'none';
+            }
 
-        toggle.addEventListener('click', () => {
-            navigation.classList.toggle('active');
-        });
+            function showStudentDropdown() {
+                const studentDropdown = document.querySelector('.studentDropdown'); // Corrected variable name
+                studentDropdown.style.display = studentDropdown.style.display === 'none' ? 'block' : 'none';
+            }
 
-        function toggleUser() {
-            const userDropdown = document.querySelector('.dropdown-content');
-            userDropdown.style.display = userDropdown.style.display === 'none' ? 'block' : 'none';
-        }
-        function showInstructorDropdown() {
-            const instructorDropdown = document.querySelector('.instructorDropdown');
-            instructorDropdown.style.display = instructorDropdown.style.display === 'none' ? 'block' : 'none';
-        }
+            function showDepartmentDropdown() {
+                const departmentDropdown = document.querySelector('.departmentDropdown'); // Corrected variable name
+                departmentDropdown.style.display = departmentDropdown.style.display === 'none' ? 'block' : 'none';
+            }
 
-        function showStudentDropdown() {
-            const studentDropdown = document.querySelector('.studentDropdown'); // Corrected variable name
-            studentDropdown.style.display = studentDropdown.style.display === 'none' ? 'block' : 'none';
-        }
+            function toggleSidebar() {
+                const sidebar = document.querySelector('.navigation');
+                sidebar.classList.toggle('collapsed');
+            }
+        </script>
 
-        function showDepartmentDropdown() {
-            const departmentDropdown = document.querySelector('.departmentDropdown'); // Corrected variable name
-            departmentDropdown.style.display = departmentDropdown.style.display === 'none' ? 'block' : 'none';
-        }
-
-        function toggleSidebar() {
-            const sidebar = document.querySelector('.navigation');
-            sidebar.classList.toggle('collapsed');
-        }
-    </script>
-    </script>
-    <!-- <script src="main.js"></script> -->
 
 
 </body>

@@ -16,10 +16,31 @@ try {
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     // Fetch classes
-    $classesQuery = "SELECT class_id, year_level FROM class"; // Adjust table/column names as per your database
+    $classesQuery = "
+    SELECT 
+        class.class_id, 
+        class.year_level, 
+        section.sections, 
+        section.status, 
+        department.dep_id,
+        department.department
+
+
+    FROM 
+        class
+    LEFT JOIN 
+        section 
+       
+    ON 
+        class.section_id = section.section_id
+         LEFT JOIN 
+        department ON section.dep_id = department.dep_id
+        "; // Adjust column names as needed
+
     $classesStmt = $conn->prepare($classesQuery);
     $classesStmt->execute();
     $classes = $classesStmt->fetchAll(PDO::FETCH_ASSOC);
+
 
     // Fetch academic years
     $academicYearsQuery = "SELECT ay_id, year_start FROM acad_year"; // Adjust table/column names as per your database
@@ -116,10 +137,11 @@ try {
             <option value="">-- Select Class --</option>
             <?php foreach ($classes as $class): ?>
                 <option value="<?= htmlspecialchars($class['class_id']) ?>">
-                    <?= htmlspecialchars($class['year_level']) ?>
+                    <?= htmlspecialchars($class['department'] . ' - ' . $class['year_level'] . '' . $class['sections']) ?>
                 </option>
             <?php endforeach; ?>
         </select>
+
 
         <label for="ay_id">Select Academic Year</label>
         <select name="ay_id" id="ay_id" required>

@@ -17,9 +17,11 @@ try {
 
     // Fetch advisory classes
     $advisoryClassesQuery = "
-        SELECT ac.advisory_class_id, c.year_level, ay.year_start, s.semesters
+        SELECT ac.advisory_class_id, c.year_level, ay.year_start, s.semesters, sec.sections, d.department
         FROM advisory_class ac
         INNER JOIN class c ON ac.class_id = c.class_id
+        INNER JOIN section sec ON c.section_id = sec.section_id
+        INNER JOIN department d ON sec.dep_id = d.dep_id
         INNER JOIN acad_year ay ON ac.ay_id = ay.ay_id
         INNER JOIN semester s ON ac.sem_id = s.sem_id
         WHERE ac.isActive = 1
@@ -29,7 +31,19 @@ try {
     $advisoryClasses = $advisoryClassesStmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Fetch users
-    $usersQuery = "SELECT user_id, CONCAT(fname, ' ', lname) AS fullname FROM users WHERE role = 'Instructor'";
+    $usersQuery = "
+    SELECT 
+        u.user_id, 
+        CONCAT(u.fname, ' ', u.lname) AS fullname, 
+        d.department AS department_name
+    FROM 
+        users u
+        JOIN user_dep ud ON u.user_id = ud.user_id
+    JOIN 
+        department d ON ud.dep_id = d.dep_id
+    WHERE 
+        u.role = 'Instructor'
+";
     $usersStmt = $conn->prepare($usersQuery);
     $usersStmt->execute();
     $users = $usersStmt->fetchAll(PDO::FETCH_ASSOC);
@@ -125,20 +139,21 @@ try {
             <option value="">-- Select Advisory Class --</option>
             <?php foreach ($advisoryClasses as $class): ?>
                 <option value="<?= htmlspecialchars($class['advisory_class_id']) ?>">
-                    <?= htmlspecialchars($class['year_level'] . " - " . $class['year_start'] . " (" . $class['semesters'] . ")") ?>
+                    <?= htmlspecialchars($class['department'] . " - " . $class['year_level'] . "" . $class['sections'] . " - " . $class['year_start'] . " (" . $class['semesters'] . ")") ?>
                 </option>
             <?php endforeach; ?>
         </select>
 
         <label for="user_id">Select User</label>
         <select name="user_id" id="user_id" required>
-            <option value="">-- Select User --</option>
+            <option value="">-- Select Instructor --</option>
             <?php foreach ($users as $user): ?>
                 <option value="<?= htmlspecialchars($user['user_id']) ?>">
-                    <?= htmlspecialchars($user['fullname']) ?>
+                    <?= htmlspecialchars($user['fullname'] . ' - ' . $user['department_name']) ?>
                 </option>
             <?php endforeach; ?>
         </select>
+
 
         <label for="sub_id">Select Subject</label>
         <select name="sub_id" id="sub_id" required>

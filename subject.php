@@ -299,7 +299,7 @@ if (isset($_GET['sub_id'])) {
                     </div>
                     <ul class="instructorDropdown">
                         <li><a href="instructor.php">Manage Instructors</a></li>
-                        <li><a href="manage_subject.php">Instructor Subjects</a></li>
+                        <li><a href="class_teacher.php">Instructor Subjects</a></li>
                     </ul>
                 </li>
                 <li id="student" onclick="showStudentDropdown()">
@@ -326,7 +326,7 @@ if (isset($_GET['sub_id'])) {
                     </div>
                     <ul class="studentDropdown">
                         <li><a href="student.php">Manage Students</a></li>
-                        <li><a href="manage_sub_student.php">Student Sections</a></li>
+                        <li><a href="add_subject_student.php">Student Sections</a></li>
                     </ul>
                 </li>
                 <li id="admin">
@@ -382,6 +382,9 @@ if (isset($_GET['sub_id'])) {
                         </li>
                         <li>
                             <a href="acad_year.php">Manage Academic Year</a>
+                        </li>
+                        <li>
+                            <a href="advisory_class.php">Manage Advisory Class</a>
                         </li>
                     </ul>
                 </li>
@@ -470,16 +473,16 @@ if (isset($_GET['sub_id'])) {
                     </thead>
                     <tbody>
                         <?php if (isset($result) && $result->num_rows > 0): ?>
-                                <?php while ($row = $result->fetch_assoc()): ?>
-                                        <tr>
-                                            <td><?php echo htmlspecialchars($row['code']); ?></td>
-                                            <td><?php echo htmlspecialchars($row['subjects']); ?></td>
-                                            <td><?php echo htmlspecialchars($row['lec']); ?></td>
-                                            <td><?php echo htmlspecialchars($row['lab']); ?></td>
-                                            <td><?php echo htmlspecialchars($row['credit']); ?></td>
-                                            <td><?php echo htmlspecialchars($row['description']); ?></td>
-                                            <td>
-                                                <button class="btn btn-success edit-btn" onclick="openEditModal(
+                            <?php while ($row = $result->fetch_assoc()): ?>
+                                <tr>
+                                    <td><?php echo htmlspecialchars($row['code']); ?></td>
+                                    <td><?php echo htmlspecialchars($row['subjects']); ?></td>
+                                    <td><?php echo htmlspecialchars($row['lec']); ?></td>
+                                    <td><?php echo htmlspecialchars($row['lab']); ?></td>
+                                    <td><?php echo htmlspecialchars($row['credit']); ?></td>
+                                    <td><?php echo htmlspecialchars($row['description']); ?></td>
+                                    <td>
+                                        <button class="btn btn-success edit-btn" onclick="openEditModal(
                                     <?php echo $row['sub_id']; ?>,
                                     '<?php echo htmlspecialchars($row['code'], ENT_QUOTES); ?>',
                                     '<?php echo htmlspecialchars($row['subjects'], ENT_QUOTES); ?>',
@@ -488,13 +491,13 @@ if (isset($_GET['sub_id'])) {
                                     '<?php echo htmlspecialchars($row['credit'], ENT_QUOTES); ?>',
                                     '<?php echo htmlspecialchars($row['description'], ENT_QUOTES); ?>'
                                 )">Edit</button>
-                                            </td>
-                                        </tr>
-                                <?php endwhile; ?>
-                        <?php else: ?>
-                                <tr>
-                                    <td colspan="7">No subjects found</td>
+                                    </td>
                                 </tr>
+                            <?php endwhile; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="7">No subjects found</td>
+                            </tr>
                         <?php endif; ?>
                     </tbody>
                 </table>
@@ -513,7 +516,7 @@ if (isset($_GET['sub_id'])) {
             <form action="subject.php" method="POST">
                 <!-- Hidden ID field for editing -->
                 <?php if ($subjectToEdit): ?>
-                        <input type="hidden" name="id" value="<?php echo $subjectToEdit['sub_id']; ?>">
+                    <input type="hidden" name="id" value="<?php echo $subjectToEdit['sub_id']; ?>">
                 <?php endif; ?>
 
                 <div class="form-group">

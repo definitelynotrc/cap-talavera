@@ -350,7 +350,7 @@ if ($result === FALSE) {
                     </div>
                     <ul class="instructorDropdown">
                         <li><a href="instructor.php">Manage Instructors</a></li>
-                        <li><a href="manage_subject.php">Instructor Subjects</a></li>
+                        <li><a href="class_teacher.php">Instructor Subjects</a></li>
                     </ul>
                 </li>
                 <li id="student" onclick="showStudentDropdown()">
@@ -377,7 +377,7 @@ if ($result === FALSE) {
                     </div>
                     <ul class="studentDropdown">
                         <li><a href="student.php">Manage Students</a></li>
-                        <li><a href="manage_sub_student.php">Student Sections</a></li>
+                        <li><a href="add_subject_student.php">Student Sections</a></li>
                     </ul>
                 </li>
                 <li id="admin">
@@ -433,6 +433,9 @@ if ($result === FALSE) {
                         </li>
                         <li>
                             <a href="acad_year.php">Manage Academic Year</a>
+                        </li>
+                        <li>
+                            <a href="advisory_class.php">Manage Advisory Class</a>
                         </li>
                     </ul>
                 </li>
@@ -533,31 +536,31 @@ if ($result === FALSE) {
                     </thead>
                     <tbody>
                         <?php if ($result->num_rows > 0): ?>
-                                <?php while ($row = $result->fetch_assoc()): ?>
-                                        <tr>
-                                            <td><?php echo $row['department']; ?></td>
-                                            <td><?php echo $row['description']; ?></td>
-                                            <td><?php echo ucfirst($row['status']); ?></td>
-                                            <td>
-                                                <!-- Action buttons -->
-                                                <?php if ($row['status'] == 'active'): ?>
-                                                        <button class="btn btn-success edit-btn"
-                                                            onclick="openEditModal(<?php echo $row['dep_id']; ?>, '<?php echo $row['department']; ?>', '<?php echo $row['description']; ?>', '<?php echo $row['status']; ?>')">Edit</button>
-                                                        <a href="department.php?archive=true&dep_id=<?php echo $row['dep_id']; ?>">
-                                                            <button class="btn btn-danger archive-btn">Archive</button>
-                                                        </a>
-                                                <?php elseif ($row['status'] == 'archived'): ?>
-                                                        <a href="department.php?restore=true&dep_id=<?php echo $row['dep_id']; ?>">
-                                                            <button class="btn btn-success edit-btn">Restore</button>
-                                                        </a>
-                                                <?php endif; ?>
-                                            </td>
-                                        </tr>
-                                <?php endwhile; ?>
-                        <?php else: ?>
+                            <?php while ($row = $result->fetch_assoc()): ?>
                                 <tr>
-                                    <td colspan="4">No departments found</td>
+                                    <td><?php echo $row['department']; ?></td>
+                                    <td><?php echo $row['description']; ?></td>
+                                    <td><?php echo ucfirst($row['status']); ?></td>
+                                    <td>
+                                        <!-- Action buttons -->
+                                        <?php if ($row['status'] == 'active'): ?>
+                                            <button class="btn btn-success edit-btn"
+                                                onclick="openEditModal(<?php echo $row['dep_id']; ?>, '<?php echo $row['department']; ?>', '<?php echo $row['description']; ?>', '<?php echo $row['status']; ?>')">Edit</button>
+                                            <a href="department.php?archive=true&dep_id=<?php echo $row['dep_id']; ?>">
+                                                <button class="btn btn-danger archive-btn">Archive</button>
+                                            </a>
+                                        <?php elseif ($row['status'] == 'archived'): ?>
+                                            <a href="department.php?restore=true&dep_id=<?php echo $row['dep_id']; ?>">
+                                                <button class="btn btn-success edit-btn">Restore</button>
+                                            </a>
+                                        <?php endif; ?>
+                                    </td>
                                 </tr>
+                            <?php endwhile; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="4">No departments found</td>
+                            </tr>
                         <?php endif; ?>
                     </tbody>
                 </table>
@@ -574,7 +577,7 @@ if ($result === FALSE) {
             <form action="department.php" method="POST">
                 <!-- Hidden ID field for editing -->
                 <?php if ($departmentToEdit): ?>
-                        <input type="hidden" name="id" value="<?php echo $departmentToEdit['dep_id']; ?>">
+                    <input type="hidden" name="id" value="<?php echo $departmentToEdit['dep_id']; ?>">
                 <?php endif; ?>
 
                 <div class="form-group">

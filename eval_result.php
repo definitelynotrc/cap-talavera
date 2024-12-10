@@ -212,7 +212,7 @@ if ($conn->connect_error) {
                     </div>
                     <ul class="instructorDropdown">
                         <li><a href="instructor.php">Manage Instructors</a></li>
-                        <li><a href="manage_subject.php">Instructor Subjects</a></li>
+                        <li><a href="class_teacher.php">Instructor Subjects</a></li>
                     </ul>
                 </li>
                 <li id="student" onclick="showStudentDropdown()">
@@ -239,7 +239,7 @@ if ($conn->connect_error) {
                     </div>
                     <ul class="studentDropdown">
                         <li><a href="student.php">Manage Students</a></li>
-                        <li><a href="manage_sub_student.php">Student Sections</a></li>
+                        <li><a href="add_subject_student.php">Student Sections</a></li>
                     </ul>
                 </li>
                 <li id="admin">
@@ -295,6 +295,9 @@ if ($conn->connect_error) {
                         </li>
                         <li>
                             <a href="acad_year.php">Manage Academic Year</a>
+                        </li>
+                        <li>
+                            <a href="advisory_class.php">Manage Advisory Class</a>
                         </li>
                     </ul>
                 </li>

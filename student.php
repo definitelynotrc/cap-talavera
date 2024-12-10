@@ -411,7 +411,7 @@ if ($result === FALSE) {
                     </div>
                     <ul class="instructorDropdown">
                         <li><a href="instructor.php">Manage Instructors</a></li>
-                        <li><a href="manage_subject.php">Instructor Subjects</a></li>
+                        <li><a href="class_teacher.php">Instructor Subjects</a></li>
                     </ul>
                 </li>
                 <li id="student" onclick="showStudentDropdown()">
@@ -438,7 +438,7 @@ if ($result === FALSE) {
                     </div>
                     <ul class="studentDropdown">
                         <li><a href="student.php">Manage Students</a></li>
-                        <li><a href="manage_sub_student.php">Student Sections</a></li>
+                        <li><a href="add_subject_student.php">Student Sections</a></li>
                     </ul>
                 </li>
                 <li id="admin">
@@ -494,6 +494,9 @@ if ($result === FALSE) {
                         </li>
                         <li>
                             <a href="acad_year.php">Manage Academic Year</a>
+                        </li>
+                        <li>
+                            <a href="advisory_class.php">Manage Advisory Class</a>
                         </li>
                     </ul>
                 </li>
@@ -586,37 +589,37 @@ if ($result === FALSE) {
                     </thead>
                     <tbody>
                         <?php if ($result->num_rows > 0): ?>
-                                <?php while ($row = $result->fetch_assoc()): ?>
-                                        <tr>
-                                            <td><?php echo $row['fname'] . ' ' . $row['mname'] . ' ' . $row['lname'] . ' ' . $row['suffixname']; ?>
-                                            </td>
-                                            <td><?php echo $row['contact_no']; ?></td>
-                                            <td><?php echo $row['gender']; ?></td>
-                                            <td><?php echo $row['email']; ?></td>
-                                            <td><?php echo $row['role']; ?></td>
-                                            <td>
-                                                <!-- Action buttons -->
-                                                <?php if ($row['is_archived'] == 0): ?>
-                                                        <button class="btn btn-success edit-btn"
-                                                            onclick="openEditModal(<?php echo $row['user_id']; ?>, '<?php echo $row['fname']; ?>', '<?php echo $row['mname']; ?>', '<?php echo $row['lname']; ?>', '<?php echo $row['suffixname']; ?>',  '<?php echo $row['contact_no']; ?>', '<?php echo $row['houseno']; ?>', '<?php echo $row['street']; ?>', '<?php echo $row['barangay']; ?>', '<?php echo $row['city']; ?>', '<?php echo $row['province']; ?>', '<?php echo $row['postalcode']; ?>', '<?php echo $row['birthdate']; ?>', '<?php echo $row['gender']; ?>', '<?php echo $row['email']; ?>', '<?php echo $row['role']; ?>')">Edit</button>
-
-
-                                                        <a href="student.php?archive=true&user_id=<?php echo $row['user_id']; ?>">
-                                                            <button class="btn btn-danger archive-btn">Archive</button>
-                                                        </a>
-                                                <?php elseif ($row['is_archived'] == 1): ?>
-                                                        <a href="student.php?restore=true&user_id=<?php echo $row['user_id']; ?>">
-                                                            <button class="btn btn-success edit-btn">Restore</button>
-                                                        </a>
-                                                <?php endif; ?>
-
-                                            </td>
-                                        </tr>
-                                <?php endwhile; ?>
-                        <?php else: ?>
+                            <?php while ($row = $result->fetch_assoc()): ?>
                                 <tr>
-                                    <td colspan="6">No students found</td>
+                                    <td><?php echo $row['fname'] . ' ' . $row['mname'] . ' ' . $row['lname'] . ' ' . $row['suffixname']; ?>
+                                    </td>
+                                    <td><?php echo $row['contact_no']; ?></td>
+                                    <td><?php echo $row['gender']; ?></td>
+                                    <td><?php echo $row['email']; ?></td>
+                                    <td><?php echo $row['role']; ?></td>
+                                    <td>
+                                        <!-- Action buttons -->
+                                        <?php if ($row['is_archived'] == 0): ?>
+                                            <button class="btn btn-success edit-btn"
+                                                onclick="openEditModal(<?php echo $row['user_id']; ?>, '<?php echo $row['fname']; ?>', '<?php echo $row['mname']; ?>', '<?php echo $row['lname']; ?>', '<?php echo $row['suffixname']; ?>',  '<?php echo $row['contact_no']; ?>', '<?php echo $row['houseno']; ?>', '<?php echo $row['street']; ?>', '<?php echo $row['barangay']; ?>', '<?php echo $row['city']; ?>', '<?php echo $row['province']; ?>', '<?php echo $row['postalcode']; ?>', '<?php echo $row['birthdate']; ?>', '<?php echo $row['gender']; ?>', '<?php echo $row['email']; ?>', '<?php echo $row['role']; ?>')">Edit</button>
+
+
+                                            <a href="student.php?archive=true&user_id=<?php echo $row['user_id']; ?>">
+                                                <button class="btn btn-danger archive-btn">Archive</button>
+                                            </a>
+                                        <?php elseif ($row['is_archived'] == 1): ?>
+                                            <a href="student.php?restore=true&user_id=<?php echo $row['user_id']; ?>">
+                                                <button class="btn btn-success edit-btn">Restore</button>
+                                            </a>
+                                        <?php endif; ?>
+
+                                    </td>
                                 </tr>
+                            <?php endwhile; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="6">No students found</td>
+                            </tr>
                         <?php endif; ?>
                     </tbody>
                 </table>

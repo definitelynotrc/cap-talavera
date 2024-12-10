@@ -1,71 +1,65 @@
 <?php
-// Database connection details
+// Database connection
 $servername = "localhost";
 $username = "root";
 $password = "";
-$dbname = "cap"; // Replace with your actual database name 'cap'
+$dbname = "cap";
 
-// Create connection
 $conn = new mysqli($servername, $username, $password, $dbname);
-
-// Check connection
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Handle form submission
-if (isset($_POST['assign_student'])) {
-    // Get form data
-    $student_id = $_POST['student_id']; // Correctly use 'student_id' from the form
-    $section_id = $_POST['section_id'];
+// Check if form is submitted
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Get selected student and subjects (advisory class)
+    $studentId = $_POST['student'];
+    $subjects = $_POST['subjects'];
 
-    // Validate input
-    if (!empty($student_id) && !empty($section_id)) {
-        // Retrieve the department id (dep_id) and user_id for the selected student
-        $studentQuery = "SELECT dep_id, user_id FROM user_dep WHERE user_id = ?";
-        $studentStmt = $conn->prepare($studentQuery);
-        $studentStmt->bind_param("i", $student_id);
-        $studentStmt->execute();
-        $studentResult = $studentStmt->get_result();
+    // Validate data
+    if (!empty($studentId) && !empty($subjects)) {
+        // Iterate through selected subjects and insert into the user_class table
+        foreach ($subjects as $subjectId) {
+            // Query to get the advisory_class_id based on the selected subject
+            $query = "
+                SELECT ac.advisory_class_id 
+                FROM class_teacher ct
+                JOIN advisory_class ac ON ct.advisory_class_id = ac.advisory_class_id
+                WHERE ct.sub_id = ? ";
 
-        if ($studentResult->num_rows > 0) {
-            $studentData = $studentResult->fetch_assoc();
-            $dep_id = $studentData['dep_id'];
-            $user_id = $studentData['user_id'];
+            if ($stmt = $conn->prepare($query)) {
+                $stmt->bind_param("i", $subjectId);
+                $stmt->execute();
+                $stmt->bind_result($advisoryClassId);
+                $stmt->fetch();
+                $stmt->close();
 
-            // Check if the student is already assigned to the selected section
-            $checkAssignmentQuery = "SELECT * FROM class_student WHERE user_id = ? AND section_id = ?";
-            $checkAssignmentStmt = $conn->prepare($checkAssignmentQuery);
-            $checkAssignmentStmt->bind_param("ii", $user_id, $section_id);
-            $checkAssignmentStmt->execute();
-            $checkAssignmentResult = $checkAssignmentStmt->get_result();
-
-            // If the student is already assigned, show an error message
-            if ($checkAssignmentResult->num_rows > 0) {
-                echo "<script>alert('This student is already assigned to this section.'); window.location.href='manage_sub_student.php';</script>";
-            } else {
-                // Insert the student into the class_student table
-                $insertQuery = "INSERT INTO class_student (dep_id, user_id, section_id) VALUES (?, ?, ?)";
-                $insertStmt = $conn->prepare($insertQuery);
-                $insertStmt->bind_param("iii", $dep_id, $user_id, $section_id);
-
-                if ($insertStmt->execute()) {
-                    echo "<script>alert('Student assigned to section successfully!'); window.location.href='manage_sub_student.php';</script>";
+                if ($advisoryClassId) {
+                    // Insert the student and advisory_class_id into the user_class table
+                    $insertQuery = "INSERT INTO user_class (user_id, advisory_class_id, isActive) VALUES (?, ?, 1)";
+                    if ($insertStmt = $conn->prepare($insertQuery)) {
+                        $insertStmt->bind_param("ii", $studentId, $advisoryClassId);
+                        if ($insertStmt->execute()) {
+                            echo "<script>alert('Subject(s) assigned to student successfully!');</script>";
+                        } else {
+                            echo "<script>alert('Error assigning subject to student: " . $insertStmt->error . "');</script>";
+                        }
+                        $insertStmt->close();
+                    } else {
+                        echo "<script>alert('Error preparing insert statement into user_class table.');</script>";
+                    }
                 } else {
-                    echo "Error: " . $insertStmt->error;
+                    echo "<script>alert('No advisory class found for the selected subject.');</script>";
                 }
-
-                $insertStmt->close();
+            } else {
+                echo "<script>alert('Error preparing query to fetch advisory_class_id.');</script>";
             }
-
-            $checkAssignmentStmt->close();
-        } else {
-            echo "<script>alert('Student not found.'); window.location.href='manage_sub_student.php';</script>";
         }
 
-        $studentStmt->close();
+        // Redirect back to the form page or show a success message
+        echo "<script>window.location.href = 'add_subject_student.php';</script>";
     } else {
-        echo "<script>alert('Please select a student and section.'); window.location.href='manage_sub_student.php';</script>";
+        echo "<script>alert('Please select a student and at least one subject.');</script>";
     }
 }
 

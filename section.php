@@ -18,15 +18,24 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 // Fetch departments from the department table
-$departments = [];
-$deptQuery = "SELECT * FROM department WHERE status = 'active'"; // You can adjust this query to filter based on active status if needed
-$deptResult = $conn->query($deptQuery);
-if ($deptResult->num_rows > 0) {
-    while ($deptRow = $deptResult->fetch_assoc()) {
-        $departments[] = $deptRow;
+$yearLevels = [];
+$classQuery = "SELECT class_id, year_level FROM class ORDER BY year_level ASC";
+$classResult = $conn->query($classQuery);
+if ($classResult && $classResult->num_rows > 0) {
+    while ($row = $classResult->fetch_assoc()) {
+        $yearLevels[] = $row;
     }
 }
 
+// Fetch departments dynamically
+$departments = [];
+$departmentQuery = "SELECT dep_id, department FROM department ORDER BY department ASC";
+$departmentResult = $conn->query($departmentQuery);
+if ($departmentResult && $departmentResult->num_rows > 0) {
+    while ($row = $departmentResult->fetch_assoc()) {
+        $departments[] = $row;
+    }
+}
 
 
 
@@ -81,21 +90,20 @@ if ($filter == 'archived') {
 }
 
 $query = "SELECT 
-                s.section_id, 
-                s.sections, 
-                d.department,
-                s.status,
-                c.year_level
-            FROM 
-                section s
-            INNER JOIN 
-                department d ON s.dep_id = d.dep_id
-            INNER JOIN 
-                class c ON s.class_id = c.class_id
-            WHERE 
-                s.status IN ('active', 'archived')
-            ORDER BY 
-                c.year_level asc ";
+    class.class_id,
+    class.section_id,
+    section.sections AS section_name,
+    section.status AS section_status,
+    department.department AS department_name,
+    class.year_level
+FROM 
+    class
+INNER JOIN 
+    section ON class.section_id = section.section_id
+    INNER JOIN department ON section.dep_id = department.dep_id"
+;
+
+
 
 $result = $conn->query($query);
 
@@ -444,7 +452,7 @@ if ($result === FALSE) {
                 </div>
                 <ul class="instructorDropdown">
                     <li><a href="instructor.php">Manage Instructors</a></li>
-                    <li><a href="manage_subject.php">Instructor Subjects</a></li>
+                    <li><a href="class_teacher.php">Instructor Subjects</a></li>
                 </ul>
             </li>
             <li id="student" onclick="showStudentDropdown()">
@@ -471,7 +479,7 @@ if ($result === FALSE) {
                 </div>
                 <ul class="studentDropdown">
                     <li><a href="student.php">Manage Students</a></li>
-                    <li><a href="manage_sub_student.php">Student Sections</a></li>
+                    <li><a href="add_subject_student.php">Student Sections</a></li>
                 </ul>
             </li>
             <li id="admin">
@@ -526,6 +534,9 @@ if ($result === FALSE) {
                     </li>
                     <li>
                         <a href="acad_year.php">Manage Academic Year</a>
+                    </li>
+                    <li>
+                        <a href="advisory_class.php">Manage Advisory Class</a>
                     </li>
                 </ul>
             </li>
@@ -627,23 +638,20 @@ if ($result === FALSE) {
                     <?php if ($result->num_rows > 0): ?>
                         <?php while ($row = $result->fetch_assoc()): ?>
                             <tr>
-                                <td><?php echo $row['sections']; ?></td>
-                                <td><?php echo $row['department']; ?></td>
+                                <td><?php echo $row['section_name']; ?></td>
+                                <td><?php echo $row['department_name']; ?></td>
                                 <td><?php echo $row['year_level']; ?></td>
-                                <td><?php echo ucfirst($row['status']); ?></td>
+                                <td><?php echo ucfirst($row['section_status']); ?></td>
                                 <td>
                                     <!-- Edit Button -->
                                     <button class="btn edit-btn"
-                                        onclick="openEditModal(<?php echo $row['section_id']; ?>, '<?php echo $row['sections']; ?>', '<?php echo $row['status']; ?>')">Edit</button>
+                                        onclick="openEditModal(<?php echo $row['section_id']; ?>, '<?php echo $row['section_name']; ?>', '<?php echo $row['section_status']; ?>')">Edit</button>
                                     <!-- Archive Button -->
                                     <a href="section.php?archive=true&section_id=<?php echo $row['section_id']; ?>"
                                         class="btn archive-btn">Archive</a>
                                     <!-- Restore Button -->
                                     <a href="section.php?restore=true&section_id=<?php echo $row['section_id']; ?>"
                                         class="btn restore-btn">Restore</a>
-                                    <button class="btn add-subject-btn"
-                                        onclick="openAddSubjectModal(<?php echo $row['section_id']; ?>, '<?php echo $row['sections']; ?>', '<?php echo $row['status']; ?>')">Add
-                                        Subject</button>
 
                                 </td>
                             </tr>
@@ -672,29 +680,33 @@ if ($result === FALSE) {
                     required>
             </div>
             <div class="form-group">
-                <label for="year_level" class="form-label">Year Level</label>
-                <select name="class_id" id="year_level" class="form-input" required>
-                    <option value="">Select Year Level</option>
-                    <option value="1">First Year</option>
-                    <option value="2">Second Year</option>
-                    <option value="3">Third Year</option>
-                    <option value="4">Fourth Year</option>
+                <label for="department" class="form-label">Department</label>
+                <select name="dep_id" id=" department" class="form-input" required>
+                    <option value="">Select Department</option>
+                    <?php foreach ($departments as $department): ?>
+                        <option value="<?= htmlspecialchars($department['dep_id']); ?>">
+                            <?= htmlspecialchars($department['department']); ?>
+                        </option>
+                    <?php endforeach; ?>
                 </select>
             </div>
 
             <div class="form-group">
-                <label for="department" class="form-label">Department</label>
-                <select name="department" id="department" class="form-input" required>
-                    <option value="">Select Department</option>
-                    <?php
-                    // Fetch departments dynamically
-                    $departments_query = $conn->query("SELECT dep_id, department FROM department");
-                    while ($department = $departments_query->fetch_assoc()):
-                        ?>
-                        <option value="<?php echo $department['dep_id']; ?>">
-                            <?php echo htmlspecialchars($department['department']); ?>
-                        </option>
-                    <?php endwhile; ?>
+                <label for="year_level" class="form-label">Year Level</label>
+                <select name="year_level" id="year_level" class="form-input" required>
+                    <option value="">Select Year Level</option>
+                    <option value="1">
+                        1
+                    </option>
+                    <option value="2">
+                        2
+                    </option>
+                    <option value="3">
+                        3
+                    </option>
+                    <option value="4">
+                        4
+                    </option>
                 </select>
             </div>
             <input type="hidden" name="status" value="active"> <!-- Default Status -->
@@ -819,69 +831,10 @@ if ($result === FALSE) {
     }
 
     // Load available subjects via AJAX
-    function loadSubjectsForSection(sectionId) {
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', 'fetch_subject_for_sections.php?section_id=' + sectionId + '&_=' + new Date().getTime(), true);
-        xhr.onload = function () {
-            if (xhr.status == 200) {
-                var subjects = JSON.parse(xhr.responseText);
-                console.log(subjects); // Check if subjects are logged correctly
-
-                var select = document.getElementById('subjectSelect');
-                select.innerHTML = ''; // Clear existing options
-
-                // Add an initial placeholder option
-                var placeholderOption = document.createElement('option');
-                placeholderOption.value = '';
-                placeholderOption.textContent = 'Select Subjects';
-                select.appendChild(placeholderOption);
-
-                // Loop through the subjects and append them as options
-                subjects.forEach(function (subject) {
-                    var option = document.createElement('option');
-                    option.value = subject.sub_id;
-
-                    // Check if the instructor's name exists and display semester
-                    var instructorText = subject.instructor_fname && subject.instructor_lname
-                        ? ' (Instructor: ' + subject.instructor_fname + ' ' + subject.instructor_lname + ')'
-                        : ' (No Instructor Assigned)';
-
-                    // Display subject with instructor and semester information
-                    option.textContent = subject.subjects + instructorText + ' (Semester: ' + subject.semester + ')';
-
-                    select.appendChild(option);
-                });
-            } else {
-                console.error("Failed to load subjects. Status: " + xhr.status);
-            }
-        };
-        xhr.send();
-    }
-
 
 
 
     // Handle form submission to add subjects
-    document.getElementById('addSubjectForm').addEventListener('submit', function (e) {
-        e.preventDefault();
-        var sectionId = document.getElementById('section_id').value;
-        var selectedSubjects = Array.from(document.getElementById('subjectSelect').selectedOptions)
-            .map(option => option.value);
-
-        // Send selected subjects to the server
-        var xhr = new XMLHttpRequest();
-        xhr.open('POST', 'assign_subject_forsection.php', true);
-        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-        xhr.onload = function () {
-            if (xhr.status == 200) {
-                alert('Subjects added successfully!');
-                closeAddSubjectModal(); // Close modal after success
-            } else {
-                alert('Error adding subjects.');
-            }
-        };
-        xhr.send('section_id=' + sectionId + '&subjects=' + JSON.stringify(selectedSubjects));
-    });
 
 
     function openEditModal(section_id, sections, status) {
