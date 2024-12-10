@@ -398,26 +398,7 @@ $totalStudentsBSBA = !empty($result) ? $result['total_students'] : 0;
                 </div>
             </div>
             <?php
-            // Query to fetch the highest evaluation rating
-            $highestEvaluationQuery = "
-    SELECT 
-        e.eval_id,
-        e.remarks,
-        e.rate_result,
-        e.date_created,
-        u.fname AS instructor_fname,
-        u.lname AS instructor_lname,
-        ct.teacher_type
-    FROM evaluation e
-    JOIN class_teacher ct ON e.class_teacher_id = ct.class_teacher_id
-    JOIN users u ON ct.user_id = u.user_id
-    ORDER BY e.rate_result DESC
-    LIMIT 1
-";
 
-            $stmt = $pdo->prepare($highestEvaluationQuery);
-            $stmt->execute(); // No need to bind parameters here since the query doesn't have placeholders.
-            $highestEvaluation = $stmt->fetch(PDO::FETCH_ASSOC);
 
             // Fetch recent evaluations for the table
             $recentEvaluationsQuery = "
@@ -441,23 +422,7 @@ $totalStudentsBSBA = !empty($result) ? $result['total_students'] : 0;
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             // Display highest evaluation
-            if ($highestEvaluation): ?>
-                <div
-                    style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #ddd; margin-top: 20px; margin-bottom: 30px;">
-                    <h3 style="font-size: 1.6rem; color: #2A2185; font-weight: bold; margin-bottom: 15px;">Highest
-                        Evaluation</h3>
-                    <p style="font-size: 1.1rem; color: #333; line-height: 1.6;">
-                        <strong style="color: #2A2185;">Instructor:</strong>
-                        <?php echo $highestEvaluation['instructor_fname'] . ' ' . $highestEvaluation['instructor_lname']; ?><br>
-                        <strong style="color: #2A2185;">Teacher Type:</strong>
-                        <?php echo $highestEvaluation['teacher_type']; ?><br>
-                        <strong style="color: #2A2185;">Overall Rating:</strong>
-                        <?php echo $highestEvaluation['rate_result']; ?><br>
-
-                    </p>
-                </div>
-            <?php endif; ?>
-
+            ?>
 
             <?php
             // Query to fetch recently evaluated instructors
@@ -519,6 +484,151 @@ $totalStudentsBSBA = !empty($result) ? $result['total_students'] : 0;
                 </table>
             <?php else: ?>
                 <p style="margin-top: 20px;">No recent evaluations found.</p>
+            <?php endif; ?>
+            <?php
+            // Query to fetch the 10 highest evaluated teachers
+            $highestEvaluatedQuery = "
+    SELECT 
+     e.eval_id,
+        e.transaction_code,
+        e.remarks,
+        e.rate_result,
+        e.date_created,
+        u.fname AS instructor_fname,
+        u.lname AS instructor_lname,
+        ct.teacher_type,
+        AVG(e.rate_result) AS avg_rating
+    FROM evaluation e
+    JOIN class_teacher ct ON e.class_teacher_id = ct.class_teacher_id
+    JOIN users u ON ct.user_id = u.user_id
+    GROUP BY ct.class_teacher_id
+    ORDER BY avg_rating DESC
+    LIMIT 10
+";
+
+            $stmtHigh = $pdo->prepare($highestEvaluatedQuery);
+            $stmtHigh->execute();
+            $highestEvaluated = $stmtHigh->fetchAll(PDO::FETCH_ASSOC);
+
+            // Query to fetch the 10 lowest evaluated teachers
+            $lowestEvaluatedQuery = "
+    SELECT 
+      e.eval_id,
+        e.transaction_code,
+        e.remarks,
+        e.rate_result,
+        e.date_created,
+        u.fname AS instructor_fname,
+        u.lname AS instructor_lname,
+        ct.teacher_type,
+        AVG(e.rate_result) AS avg_rating
+    FROM evaluation e
+    JOIN class_teacher ct ON e.class_teacher_id = ct.class_teacher_id
+    JOIN users u ON ct.user_id = u.user_id
+    GROUP BY ct.class_teacher_id
+    ORDER BY avg_rating ASC
+    LIMIT 10
+";
+
+            $stmtLow = $pdo->prepare($lowestEvaluatedQuery);
+            $stmtLow->execute();
+            $lowestEvaluated = $stmtLow->fetchAll(PDO::FETCH_ASSOC);
+            ?>
+
+
+
+            <?php if (count($highestEvaluated) > 0): ?>
+                <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                    <caption style="font-size: 1.2rem; font-weight: bold; margin-bottom: 10px;">Highest Evaluated Teachers
+                    </caption>
+                    <thead>
+                        <tr style="background-color: #2A2185; color: white;">
+                            <th style="padding: 10px; border: 1px solid #ddd;">Transaction Code</th>
+                            <th style="padding: 10px; border: 1px solid #ddd;">Instructor</th>
+                            <th style="padding: 10px; border: 1px solid #ddd;">Teacher Type</th>
+                            <th style="padding: 10px; border: 1px solid #ddd;">Remarks</th>
+                            <th style="padding: 10px; border: 1px solid #ddd;">Rating</th>
+                            <th style="padding: 10px; border: 1px solid #ddd;">Date Evaluated</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($highestEvaluated as $row): ?>
+                            <tr>
+                                <td style="padding: 10px; border: 1px solid #ddd;">
+                                    <?php echo htmlspecialchars($row['transaction_code']); ?>
+                                </td>
+                                <td style="padding: 10px; border: 1px solid #ddd;">
+                                    <?php echo htmlspecialchars($row['instructor_fname'] . ' ' . $row['instructor_lname']); ?>
+
+                                </td>
+                                <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
+                                    <?php echo htmlspecialchars($row['teacher_type']); ?>
+
+                                </td>
+                                <td style="padding: 10px; border: 1px solid #ddd;">
+                                    <?php echo htmlspecialchars($row['remarks']); ?>
+                                </td>
+                                <td style="padding: 10px; border: 1px solid #ddd;">
+                                    <?php echo number_format($row['avg_rating'], 2); ?>
+                                </td>
+                                <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
+
+                                    <?php echo date("F j, Y, g:i a", strtotime($row['date_created'])); ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php else: ?>
+                <p>No high-rated teachers found.</p>
+            <?php endif; ?>
+
+            <!-- Table for Top 10 Lowest Evaluated Teachers -->
+
+            <?php if (count($lowestEvaluated) > 0): ?>
+                <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                    <caption style="font-size: 1.2rem; font-weight: bold; margin-bottom: 10px;">Lowest Evaluated Teachers
+                    </caption>
+                    <thead>
+                        <tr style="background-color: #2A2185; color: white;">
+                            <th style="padding: 10px; border: 1px solid #ddd;">Transaction Code</th>
+                            <th style="padding: 10px; border: 1px solid #ddd;">Instructor</th>
+                            <th style="padding: 10px; border: 1px solid #ddd;">Teacher Type</th>
+                            <th style="padding: 10px; border: 1px solid #ddd;">Remarks</th>
+                            <th style="padding: 10px; border: 1px solid #ddd;">Rating</th>
+                            <th style="padding: 10px; border: 1px solid #ddd;">Date Evaluated</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($lowestEvaluated as $row): ?>
+                            <tr>
+                                <td style="padding: 10px; border: 1px solid #ddd;">
+                                    <?php echo htmlspecialchars($row['transaction_code']); ?>
+                                </td>
+                                <td style="padding: 10px; border: 1px solid #ddd;">
+                                    <?php echo htmlspecialchars($row['instructor_fname'] . ' ' . $row['instructor_lname']); ?>
+
+                                </td>
+                                <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
+                                    <?php echo htmlspecialchars($row['teacher_type']); ?>
+
+                                </td>
+                                <td style="padding: 10px; border: 1px solid #ddd;">
+                                    <?php echo htmlspecialchars($row['remarks']); ?>
+                                </td>
+                                <td style="padding: 10px; border: 1px solid #ddd;">
+                                    <?php echo number_format($row['avg_rating'], 2); ?>
+                                </td>
+                                <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
+
+                                    <?php echo date("F j, Y, g:i a", strtotime($row['date_created'])); ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php else: ?>
+                <p>No low-rated teachers found.</p>
             <?php endif; ?>
 
         </div>
