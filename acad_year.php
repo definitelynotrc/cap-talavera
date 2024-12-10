@@ -183,14 +183,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ay_id'])) {
             /* Black background with opacity */
         }
 
-        .mymodal-content,
-        .modal-content {
+
+        .newmodal-content {
             background-color: #fff;
             margin: 15% auto;
             padding: 20px;
             border: 1px solid #888;
             width: 80%;
             max-width: 600px;
+            display: flex;
+            flex-direction: column;
 
         }
 
@@ -604,13 +606,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ay_id'])) {
         </div>
     </div>
     <div id="addAcademicYearModal" class="modal">
-        <div class="modal-content" style="display: flex; flex-direction: column; gap: 20px;">
+        <div class="newmodal-content" style="display: flex; flex-direction: column; gap: 20px;">
             <span class="close">&times;</span>
             <form id="addAcademicYearForm" method="POST" action="acad_year.php">
-                <label for="year_start">Academic Year Start:</label>
-                <input type="text" name="year_start" id="year_start" required>
-                <label for="isActive">Is Active:</label>
-                <input type="checkbox" name="isActive" id="isActive">
+                <div class="form-group">
+                    <label for="year_start">Academic Year Start:</label>
+                    <input type="text" name="year_start" id="year_start" required>
+                </div>
+                <div class="form-group">
+                    <label for="isActive">Is Active:</label>
+                    <input type="checkbox" name="isActive" id="isActive">
+                </div>
                 <button type="submit">Add</button>
             </form>
         </div>
@@ -618,14 +624,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ay_id'])) {
 
 
     <div id="editAcademicYearModal" class="modal" style="display: none;">
-        <div class="modal-content">
+        <div class="newmodal-content">
             <span class="close">&times;</span>
             <form id="editAcademicYearForm" method="POST" action="acad_year.php">
+                <div class="form-group"> <label for="year_start">Academic Year Start:</label>
+                    <input type="text" name="year_start" id="edit_year_start" required>
+                </div>
                 <input type="hidden" name="ay_id" id="edit_ay_id">
-                <label for="year_start">Academic Year Start:</label>
-                <input type="text" name="year_start" id="edit_year_start" required>
-                <label for="isActive">Is Active:</label>
-                <input type="checkbox" name="isActive" id="edit_isActive">
+                <div class="form-group">
+                    <label for="isActive">Is Active:</label>
+                    <input type="checkbox" name="isActive" id="edit_isActive">
+                </div>
                 <button type="submit">Save</button>
             </form>
         </div>
