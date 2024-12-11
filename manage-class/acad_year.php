@@ -140,7 +140,21 @@ $stmt = $pdo->prepare($sql);
 $stmt->bindParam(':currentYear', $currentYear, PDO::PARAM_INT);
 
 // Try executing the query and check if it worked
-$stmt->execute();
+if ($stmt->execute()) {
+    // If the academic year is updated, now update advisory_class for inactive academic years
+    $updateAdvisoryClassSql = "
+        UPDATE advisory_class 
+        SET isActive = 0 
+        WHERE ay_id IN (SELECT ay_id FROM acad_year WHERE isActive = 0)
+    ";
+
+    // Prepare the update query for advisory_class
+    $updateStmt = $pdo->prepare($updateAdvisoryClassSql);
+
+    // Execute the query
+    $updateStmt->execute();
+}
+
 // Check how many rows were updated
 
 

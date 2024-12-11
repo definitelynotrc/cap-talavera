@@ -15,18 +15,28 @@ try {
     $conn = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    $advisoryClassQuery = "SELECT advisory_class.advisory_class_id, department.department, class.year_level, section.sections, acad_year.year_start, acad_year.year_end, semester.semesters FROM advisory_class
-  
+    $advisoryClassQuery = "
+    SELECT 
+        advisory_class.advisory_class_id, 
+        department.department, 
+        class.year_level, 
+        section.sections, 
+        acad_year.year_start, 
+        acad_year.year_end, 
+        semester.semesters 
+    FROM advisory_class
     INNER JOIN class_dep ON advisory_class.class_dep_id = class_dep.class_dep_id
     INNER JOIN class ON class_dep.class_id = class.class_id
     INNER JOIN section ON class.section_id = section.section_id
     INNER JOIN acad_year ON advisory_class.ay_id = acad_year.ay_id
     INNER JOIN semester ON advisory_class.sem_id = semester.sem_id
-    INNER JOIN department ON class_dep.dep_id = department.dep_id";
+    INNER JOIN department ON class_dep.dep_id = department.dep_id
+    WHERE advisory_class.isActive = 1";
 
     $advisoryClassStmt = $conn->prepare($advisoryClassQuery);
     $advisoryClassStmt->execute();
     $advisoryClasses = $advisoryClassStmt->fetchAll(PDO::FETCH_ASSOC);
+    ;
 
 
 

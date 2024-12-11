@@ -1,31 +1,72 @@
 <?php
-
+session_start();
+$userid = $_SESSION['user_id'];
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit;
+}
 $servername = "localhost";
 $username = "root";
 $password = "";
 $dbname = "cap";
 
-
+// Establish connection
 $conn = new mysqli($servername, $username, $password, $dbname);
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-$query = "
-    SELECT s.sub_id, s.code, s.description, CONCAT(u.fname, ' ', u.lname) AS instructor_name,
-    cl.year_level, sec.sections, sem.semesters, ac.advisory_class_id
-    FROM class_teacher ct
-    JOIN subject s ON ct.sub_id = s.sub_id
-    JOIN users u ON ct.user_id = u.user_id
-    JOIN advisory_class ac ON ct.advisory_class_id = ac.advisory_class_id
-    JOIN class_dep c ON ac.class_dep_id = c.class_dep_id
-    JOIN class cl ON c.class_id = cl.class_id
-    JOIN section sec ON cl.section_id = sec.section_id
-    JOIN semester sem ON ac.sem_id = sem.sem_id
 
+$query = "
+    SELECT 
+        ac.advisory_class_id,
+        cl.year_level,
+        sec.sections,
+        sem.semesters,
+       dep.department,
+        CONCAT(ay.year_start, '-', ay.year_end) AS academic_year,
+        CONCAT(u.fname, ' ', u.lname) AS instructor_name
+    FROM 
+        advisory_class ac
+    JOIN 
+        class_dep c ON ac.class_dep_id = c.class_dep_id
+        JOIN department dep ON c.dep_id = dep.dep_id
+    JOIN 
+        class cl ON c.class_id = cl.class_id
+    JOIN 
+        section sec ON cl.section_id = sec.section_id
+    JOIN 
+        semester sem ON ac.sem_id = sem.sem_id
+    JOIN 
+        acad_year ay ON ac.ay_id = ay.ay_id
+    JOIN 
+        class_teacher ct ON ac.advisory_class_id = ct.advisory_class_id
+    JOIN 
+        users u ON ct.user_id = u.user_id
+    ORDER BY 
+        ac.advisory_class_id, u.lname;
 ";
-$result = $conn->query($query);
+
+// Prepare and execute the query
+$stmt = $conn->prepare($query);
+$stmt->execute();
+
+// Fetch the result
+$result = $stmt->get_result();
+$advisoryClasses = [];
+while ($row = $result->fetch_assoc()) {
+    $classKey = $row['advisory_class_id'];
+    $className = $row['department'] . '-' . $row['year_level'] . '' . $row['sections'] . ' - ' . $row['semesters'] . ' - SY: ' . $row['academic_year'];
+    $advisoryClasses[$classKey]['name'] = $className;
+    $advisoryClasses[$classKey]['instructors'][] = $row['instructor_name'];
+}
+
+
+// Close the statement and connection
+
+
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -101,45 +142,55 @@ $result = $conn->query($query);
     <div class="container">
         <?php include '../components/sidebar.php'; ?>
         <div class="main">
-            <h1>Assign Subjects to Student</h1>
+            <h1>Assign Student to a class </h1>
 
             <form action="assign_student.php" method="post"
                 style="display: flex; flex-direction: column; width: 500px; padding: 20px; background-color: #f9f9f9; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
 
-                <!-- Select Student Dropdown -->
+
                 <label for="student" style="font-size: 16px; margin-bottom: 8px;">Select Student:</label>
                 <select id="student" name="student"
                     style="padding: 8px; font-size: 14px; border-radius: 4px; border: 1px solid #ccc; margin-bottom: 16px;">
                     <option value="">Select a Student</option>
                     <?php
+
+                    if ($conn->connect_error) {
+                        die("Connection failed: " . $conn->connect_error);
+                    } else {
+                        echo "<!-- Database connected successfully -->";
+                    }
+
+                    // Debug: Check if the query executes
                     $studentsQuery = "SELECT user_id, CONCAT(fname, ' ', lname) AS student_name FROM users WHERE role = 'Student'";
                     $studentsResult = $conn->query($studentsQuery);
-                    while ($student = $studentsResult->fetch_assoc()) {
-                        echo "<option value='" . $student['user_id'] . "'>" . htmlspecialchars($student['student_name']) . "</option>";
+
+                    if ($studentsResult) {
+                        while ($student = $studentsResult->fetch_assoc()) {
+                            echo "<option value='" . htmlspecialchars($student['user_id']) . "'>"
+                                . htmlspecialchars($student['student_name']) . "</option>";
+                        }
+                    } else {
+                        echo "<!-- Query Error: " . $conn->error . " -->";
                     }
                     ?>
                 </select>
 
-                <!-- Select Class Dropdown -->
-                <label for="subjects" style="font-size: 16px; margin-bottom: 8px;">Select Class:</label>
-                <select name="subjects[]" id="subjects" multiple required
-                    style="min-height: 200px; padding: 8px; font-size: 14px; border-radius: 4px; border: 1px solid #ccc; margin-bottom: 16px;">
-                    <option value="">-- Select Class --</option>
-                    <?php
-                    // Fetch the subjects, section, year level, and instructor info
-                    while ($row = $result->fetch_assoc()) {
-                        $optionText = htmlspecialchars($row['year_level']) . " - " . htmlspecialchars($row['sections']) . " - "
-                            . htmlspecialchars($row['semesters']) . " - " . htmlspecialchars($row['code'])
-                            . " (" . htmlspecialchars($row['instructor_name']) . ")";
-                        echo "<option value='" . $row['sub_id'] . "'>" . $optionText . "</option>";
-                    }
-                    ?>
+
+                <label for="advisoryClasses">Select Advisory Class:</label>
+                <select name="advisory_class" id="advisoryClasses" style="width: 100%; padding: 10px; font-size: 14px;">
+                    <option value="">-- Select Advisory Class --</option>
+                    <?php foreach ($advisoryClasses as $classId => $classInfo): ?>
+                        <option value="<?= htmlspecialchars($classId) ?>">
+                            <?= htmlspecialchars($classInfo['name']) ?>
+
+                        </option>
+                    <?php endforeach; ?>
                 </select>
 
                 <!-- Submit Button -->
                 <button type="submit"
-                    style="padding: 10px; font-size: 16px; background-color: #007BFF; color: white; border: none; border-radius: 4px; cursor: pointer; transition: background-color 0.3s;">
-                    Assign Subjects
+                    style="margin-top: 10px;  padding: 10px; font-size: 16px; background-color: #2A2185; color: white; border: none; border-radius: 4px; cursor: pointer; transition: background-color 0.3s;">
+                    Assign Class
                 </button>
             </form>
         </div>

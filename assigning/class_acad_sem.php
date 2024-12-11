@@ -25,7 +25,9 @@ try {
     FROM class_dep
     INNER JOIN class ON class_dep.class_id = class.class_id
     INNER JOIN section ON class.section_id = section.section_id
-    INNER JOIN department ON class_dep.dep_id = department.dep_id";
+    INNER JOIN department ON class_dep.dep_id = department.dep_id
+    
+    ";
     $stmt = $conn->prepare($query);
     $stmt->execute();
 
@@ -34,7 +36,7 @@ try {
 
 
 
-    $acad_yearQuery = "SELECT * FROM acad_year";
+    $acad_yearQuery = "SELECT * FROM acad_year WHERE isActive = 1";
     $acad_yearStmt = $conn->prepare($acad_yearQuery);
     $acad_yearStmt->execute();
     $acadyears = $acad_yearStmt->fetchAll(PDO::FETCH_ASSOC);
@@ -230,16 +232,18 @@ try {
         acad_year.year_end,
         GROUP_CONCAT(DISTINCT class_dep.class_dep_id) AS class_dep_ids   -- Concatenate distinct class_dep_ids
     FROM advisory_class
-    INNER JOIN class_dep ON advisory_class.class_dep_id = class_dep.class_dep_id  -- Join with class_dep_id instead of class_id
-    INNER JOIN class ON class_dep.class_id = class.class_id   -- Ensure to join with class table using class_id
+    INNER JOIN class_dep ON advisory_class.class_dep_id = class_dep.class_dep_id
+    INNER JOIN class ON class_dep.class_id = class.class_id
     INNER JOIN section ON class.section_id = section.section_id
     INNER JOIN department ON class_dep.dep_id = department.dep_id
     INNER JOIN semester ON advisory_class.sem_id = semester.sem_id
     INNER JOIN acad_year ON advisory_class.ay_id = acad_year.ay_id
+    WHERE acad_year.isActive = 1  -- Only select active academic years
     GROUP BY class.class_id, class.year_level, section.section_id, section.sections, 
         department.department, semester.semesters, acad_year.year_start, 
         acad_year.year_end
 ";
+
 
             $stmt = $conn->prepare($query);
             $stmt->execute();
