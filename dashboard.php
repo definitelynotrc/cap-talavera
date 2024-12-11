@@ -464,7 +464,7 @@ $totalStudentsBSBA = !empty($result) ? $result['total_students'] : 0;
                     <tbody>
                         <?php foreach ($result as $row): ?>
                             <tr>
-                                <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
+                                <td style="padding: 10px; border: 1px solid #ddd; ">
                                     <?php echo $row['transaction_code']; ?>
                                 </td>
                                 <td style="padding: 10px; border: 1px solid #ddd;">
@@ -472,10 +472,10 @@ $totalStudentsBSBA = !empty($result) ? $result['total_students'] : 0;
                                 </td>
                                 <td style="padding: 10px; border: 1px solid #ddd;"><?php echo $row['teacher_type']; ?></td>
                                 <td style="padding: 10px; border: 1px solid #ddd;"><?php echo $row['remarks']; ?></td>
-                                <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
+                                <td style="padding: 10px; border: 1px solid #ddd; ">
                                     <?php echo $row['rate_result']; ?>
                                 </td>
-                                <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
+                                <td style="padding: 10px; border: 1px solid #ddd; ">
                                     <?php echo date("F j, Y, g:i a", strtotime($row['date_created'])); ?>
                                 </td>
                             </tr>
@@ -561,7 +561,7 @@ $totalStudentsBSBA = !empty($result) ? $result['total_students'] : 0;
                                     <?php echo htmlspecialchars($row['instructor_fname'] . ' ' . $row['instructor_lname']); ?>
 
                                 </td>
-                                <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
+                                <td style="padding: 10px; border: 1px solid #ddd; ">
                                     <?php echo htmlspecialchars($row['teacher_type']); ?>
 
                                 </td>
@@ -571,7 +571,7 @@ $totalStudentsBSBA = !empty($result) ? $result['total_students'] : 0;
                                 <td style="padding: 10px; border: 1px solid #ddd;">
                                     <?php echo number_format($row['avg_rating'], 2); ?>
                                 </td>
-                                <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
+                                <td style="padding: 10px; border: 1px solid #ddd; ">
 
                                     <?php echo date("F j, Y, g:i a", strtotime($row['date_created'])); ?>
                                 </td>
@@ -609,7 +609,7 @@ $totalStudentsBSBA = !empty($result) ? $result['total_students'] : 0;
                                     <?php echo htmlspecialchars($row['instructor_fname'] . ' ' . $row['instructor_lname']); ?>
 
                                 </td>
-                                <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
+                                <td style="padding: 10px; border: 1px solid #ddd;">
                                     <?php echo htmlspecialchars($row['teacher_type']); ?>
 
                                 </td>
@@ -619,7 +619,7 @@ $totalStudentsBSBA = !empty($result) ? $result['total_students'] : 0;
                                 <td style="padding: 10px; border: 1px solid #ddd;">
                                     <?php echo number_format($row['avg_rating'], 2); ?>
                                 </td>
-                                <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
+                                <td style="padding: 10px; border: 1px solid #ddd; ">
 
                                     <?php echo date("F j, Y, g:i a", strtotime($row['date_created'])); ?>
                                 </td>

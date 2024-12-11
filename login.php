@@ -2,11 +2,6 @@
 // Start session for user authentication
 session_start();
 
-// Check if the user is already logged in, redirect to home page
-if (isset($_SESSION['user_id'])) {
-    header('Location: dashboard.php');
-    exit;
-}
 
 // Define error variables
 $error = '';
@@ -50,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } elseif ($role === 'Instructor') {
                     header('Location: instructor-eval/instructor_evaluation.php');
                 } elseif ($role === 'Admin') {
-                    header('Location: dashboard.php'); // Default redirection for admin
+                    header('Location: dashboard.php');
                 } else {
                     $error = 'Invalid email or password.';
                 }
