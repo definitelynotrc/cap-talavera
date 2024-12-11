@@ -69,13 +69,13 @@ if (isset($_POST['submit'])) {
 
     $stmt = $conn->prepare("INSERT INTO users (fname, mname, lname, suffixname, contact_no, houseno, street, barangay, city, province, postalcode, birthdate, gender, email, password, role, is_archived) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
     if ($stmt) {
-        $role = 'Student'; // Explicitly define role
+        $role = 'Admin'; // Explicitly define role
         $stmt->bind_param("ssssssssssssssssi", $fname, $mname, $lname, $suffixname, $contact_no, $houseno, $street, $barangay, $city, $province, $postalcode, $birthdate, $gender, $email, $hashedPassword, $role, $is_archived);
 
         if ($stmt->execute()) {
-            $_SESSION['success_message'] = "Student added successfully.";
+            $_SESSION['success_message'] = "Admin added successfully.";
             sendEmail($email, "{$fname} {$lname}", $tempPassword);
-            header('Location: student.php');
+            header('Location: admin.php');
         } else {
             $_SESSION['error_message'] = "Failed to add student: " . $stmt->error;
         }

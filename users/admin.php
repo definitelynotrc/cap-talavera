@@ -398,11 +398,11 @@ if ($result === FALSE) {
                                                 onclick="openEditModal(<?php echo $row['user_id']; ?>, '<?php echo $row['fname']; ?>', '<?php echo $row['mname']; ?>', '<?php echo $row['lname']; ?>', '<?php echo $row['suffixname']; ?>',  '<?php echo $row['contact_no']; ?>', '<?php echo $row['houseno']; ?>', '<?php echo $row['street']; ?>', '<?php echo $row['barangay']; ?>', '<?php echo $row['city']; ?>', '<?php echo $row['province']; ?>', '<?php echo $row['postalcode']; ?>', '<?php echo $row['birthdate']; ?>', '<?php echo $row['gender']; ?>', '<?php echo $row['email']; ?>', '<?php echo $row['role']; ?>')">Edit</button>
 
 
-                                            <a href="student.php?archive=true&user_id=<?php echo $row['user_id']; ?>">
+                                            <a href="admin.php?archive=true&user_id=<?php echo $row['user_id']; ?>">
                                                 <button class="btn btn-danger archive-btn">Archive</button>
                                             </a>
                                         <?php elseif ($row['is_archived'] == 1): ?>
-                                            <a href="student.php?restore=true&user_id=<?php echo $row['user_id']; ?>">
+                                            <a href="admin.php?restore=true&user_id=<?php echo $row['user_id']; ?>">
                                                 <button class="btn btn-success edit-btn">Restore</button>
                                             </a>
                                         <?php endif; ?>
@@ -412,7 +412,7 @@ if ($result === FALSE) {
                             <?php endwhile; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="6">No students found</td>
+                                <td colspan="6">No admins found</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>

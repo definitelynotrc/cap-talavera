@@ -346,6 +346,7 @@ if ($result === FALSE) {
     <div class="container">
         <?php include '../components/sidebar.php'; ?>
         <div class="main">
+            <h1>Instructors List</h1>
             <h2>Upload CSV File to Users Table</h2>
             <form action="" method="POST" enctype="multipart/form-data">
                 <label for="csvFile">Select CSV File:</label>
