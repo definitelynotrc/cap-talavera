@@ -370,44 +370,48 @@ WHERE ct.class_teacher_id = ?
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php foreach ($rows as $row):
-                                    $fullName = htmlspecialchars($row['instructor_fname']) . ' ' . htmlspecialchars($row['instructor_lname']);
-                                    $teacherType = htmlspecialchars($row['teacher_type']);
-                                    $subjectName = htmlspecialchars($row['subjects']); ?>
+                                <?php if (empty($rows)): ?>
+                                    <p>Wait for the admin to add your subjects.</p>
+                                <?php else: ?>
+                                    <?php foreach ($rows as $row):
+                                        $fullName = htmlspecialchars($row['instructor_fname']) . ' ' . htmlspecialchars($row['instructor_lname']);
+                                        $teacherType = htmlspecialchars($row['teacher_type']);
+                                        $subjectName = htmlspecialchars($row['subjects']); ?>
 
-                                    <?php
-                                    $evaluationQuery = "
+                                        <?php
+                                        $evaluationQuery = "
                         SELECT eval_id 
                         FROM evaluation 
                         WHERE class_teacher_id = ? AND user_id = ?
                     ";
-                                    $evalStmt = $conn->prepare($evaluationQuery);
-                                    $evalStmt->bind_param('ii', $row['class_teacher_id'], $studentId);
-                                    $evalStmt->execute();
-                                    $evalResult = $evalStmt->get_result();
+                                        $evalStmt = $conn->prepare($evaluationQuery);
+                                        $evalStmt->bind_param('ii', $row['class_teacher_id'], $studentId);
+                                        $evalStmt->execute();
+                                        $evalResult = $evalStmt->get_result();
 
-                                    $evaluated = $evalResult->num_rows > 0 ? 'true' : 'false';
-                                    $disabledClass = ($evaluated === 'true') ? 'disabled' : '';
-                                    $evalStmt->close();
-                                    ?>
+                                        $evaluated = $evalResult->num_rows > 0 ? 'true' : 'false';
+                                        $disabledClass = ($evaluated === 'true') ? 'disabled' : '';
+                                        $evalStmt->close();
+                                        ?>
 
 
-                                    <tr>
-                                        <td style="border: 1px solid #ddd; padding: 8px;"><?php echo $fullName; ?></td>
-                                        <td style="border: 1px solid #ddd; padding: 8px;"><?php echo $teacherType; ?></td>
-                                        <td style="border: 1px solid #ddd; padding: 8px;"><?php echo $subjectName; ?></td>
-                                        <td style="border: 1px solid #ddd; padding: 20px;">
-                                            <?php if ($evaluated === 'false'): ?>
-                                                <a href="eval_form.php?class_teacher_id=<?php echo $row['class_teacher_id']; ?>&user_id=<?php echo $studentId; ?>"
-                                                    class="custom-evaluation-button <?php echo $disabledClass; ?>">
-                                                    Evaluate
-                                                </a>
-                                            <?php else: ?>
-                                                <span>Evaluated</span>
-                                            <?php endif; ?>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
+                                        <tr>
+                                            <td style="border: 1px solid #ddd; padding: 8px;"><?php echo $fullName; ?></td>
+                                            <td style="border: 1px solid #ddd; padding: 8px;"><?php echo $teacherType; ?></td>
+                                            <td style="border: 1px solid #ddd; padding: 8px;"><?php echo $subjectName; ?></td>
+                                            <td style="border: 1px solid #ddd; padding: 20px;">
+                                                <?php if ($evaluated === 'false'): ?>
+                                                    <a href="eval_form.php?class_teacher_id=<?php echo $row['class_teacher_id']; ?>&user_id=<?php echo $studentId; ?>"
+                                                        class="custom-evaluation-button <?php echo $disabledClass; ?>">
+                                                        Evaluate
+                                                    </a>
+                                                <?php else: ?>
+                                                    <span>Evaluated</span>
+                                                <?php endif; ?>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
                             </tbody>
                         </table>
 

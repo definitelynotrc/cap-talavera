@@ -1,5 +1,4 @@
 <?php
-// fetch_evaluation_results.php
 $servername = "localhost";
 $username = "root";
 $password = "";
@@ -13,23 +12,24 @@ if ($conn->connect_error) {
 if (isset($_POST['instructor_id'])) {
     $instructorId = intval($_POST['instructor_id']);
 
-    // Query to fetch evaluations for the specific instructor
     $query = "
-    SELECT 
-        q.ques_id AS question_id,
-        q.questions AS question_text,
-        SUM(CASE WHEN rt.rate_id = 5 THEN 1 ELSE 0 END) AS count_5,
-        SUM(CASE WHEN rt.rate_id = 4 THEN 1 ELSE 0 END) AS count_4,
-        SUM(CASE WHEN rt.rate_id = 3 THEN 1 ELSE 0 END) AS count_3,
-        SUM(CASE WHEN rt.rate_id = 2 THEN 1 ELSE 0 END) AS count_2,
-        SUM(CASE WHEN rt.rate_id = 1 THEN 1 ELSE 0 END) AS count_1
-    FROM evaluation e
-    JOIN ratings r ON e.eval_id = r.eval_id
-    JOIN rate rt ON r.rate_id = rt.rate_id
-    JOIN question q ON r.ques_id = q.ques_id
-    WHERE e.class_teacher_id = ?
-    GROUP BY q.ques_id
-    ORDER BY q.ques_id ASC
+   SELECT 
+    q.ques_id AS question_id,
+    q.questions AS question_text,
+    SUM(CASE WHEN rt.rate_id = 5 THEN 1 ELSE 0 END) AS count_5,
+    SUM(CASE WHEN rt.rate_id = 4 THEN 1 ELSE 0 END) AS count_4,
+    SUM(CASE WHEN rt.rate_id = 3 THEN 1 ELSE 0 END) AS count_3,
+    SUM(CASE WHEN rt.rate_id = 2 THEN 1 ELSE 0 END) AS count_2,
+    SUM(CASE WHEN rt.rate_id = 1 THEN 1 ELSE 0 END) AS count_1,
+    COUNT(DISTINCT e.user_id) AS total_respondents
+FROM evaluation e
+JOIN ratings r ON e.eval_id = r.eval_id
+JOIN rate rt ON r.rate_id = rt.rate_id
+JOIN question q ON r.ques_id = q.ques_id
+WHERE e.class_teacher_id = ?
+GROUP BY q.ques_id
+ORDER BY q.ques_id ASC;
+
     ";
 
     $stmt = $conn->prepare($query);
@@ -42,9 +42,8 @@ if (isset($_POST['instructor_id'])) {
     $result = $stmt->get_result();
 
     $evaluations = [];
-    // Calculate the average rating
-    $totalRating = 0;
-    $totalCount = 0;
+    $totalRatings = 0;
+    $totalRespondents = 0;
 
     while ($row = $result->fetch_assoc()) {
         $ratingCounts = [
@@ -55,27 +54,32 @@ if (isset($_POST['instructor_id'])) {
             1 => $row['count_1']
         ];
 
-        // Calculate the total rating value
+        // Use total respondents from the query
+        $totalRespondents = $row['total_respondents'];
+        $questionTotalRatings = 0;
+
         foreach ($ratingCounts as $rating => $count) {
-            $totalRating += $rating * $count;  // Multiply the rating by the count
-            $totalCount += $count;  // Add the count to total evaluations
+            $questionTotalRatings += $rating * $count;
         }
 
-        // Optionally, you can store the counts per question in the response
+        // Optionally, calculate average rating per question
+        $averageRating = $totalRespondents > 0 ? $questionTotalRatings / $totalRespondents : 0;
+
+        // Add to response
         $evaluations[] = [
             'question_id' => $row['question_id'],
             'question_text' => $row['question_text'],
-            'rating_counts' => $ratingCounts
+            'rating_counts' => $ratingCounts,
+            'average_rating' => $averageRating,
+            'total_respondents' => $totalRespondents
         ];
     }
 
-    // Calculate the average rating (if there are ratings)
-    $averageRating = ($totalCount > 0) ? $totalRating / $totalCount : 0;
-
+    $averageRating = ($totalRespondents > 0) ? $totalRatings / $totalRespondents : 0;
 
     echo json_encode([
         'evaluations' => $evaluations,
-        'average_rating' => $averageRating
+        'average_rating' => number_format($averageRating, 2) // Format average to 2 decimal points
     ]);
 }
 ?>

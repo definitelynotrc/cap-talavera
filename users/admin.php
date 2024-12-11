@@ -529,7 +529,7 @@ if ($result === FALSE) {
         <div class="Addmodal-dialog">
             <div class="Addmodal-content">
                 <div class="Addmodal-header" style="display: flex; justify-content: space-between;">
-                    <h5 class="Addmodal-title" id="addStudentModalLabel">Add Student</h5>
+                    <h5 class="Addmodal-title" id="addStudentModalLabel">Add Admin</h5>
                     <button type="button" id="closeAddModal" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -596,7 +596,7 @@ if ($result === FALSE) {
                             <label for="email">Email</label>
                             <input type="email" class="form-control" id="email" name="email" required>
                         </div>
-                        <button type="submit" class="btn btn-blue" name="submit">Add Student</button>
+                        <button type="submit" class="btn btn-blue" name="submit">Add Admin</button>
                     </form>
                 </div>
             </div>

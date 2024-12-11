@@ -49,22 +49,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     header('Location: student-eval/student_evaluation.php');
                 } elseif ($role === 'Instructor') {
                     header('Location: instructor-eval/instructor_evaluation.php');
-                } else {
+                } elseif ($role === 'Admin') {
                     header('Location: dashboard.php'); // Default redirection for admin
+                } else {
+                    $error = 'Invalid email or password.';
                 }
-                exit;
             } else {
                 $error = 'Invalid email or password.';
             }
-        } else {
-            $error = 'Invalid email or password.';
-        }
 
-        // Close the statement and connection
-        $stmt->close();
-        $conn->close();
-    } else {
-        $error = 'Please fill in both fields.';
+            // Close the statement and connection
+            $stmt->close();
+            $conn->close();
+        } else {
+            $error = 'Please fill in both fields.';
+        }
     }
 }
 ?>

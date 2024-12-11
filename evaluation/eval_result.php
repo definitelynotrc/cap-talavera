@@ -112,13 +112,13 @@ if ($conn->connect_error) {
             width: 100%;
         }
 
-        .modal-content {
+        /* .modal-content {
             background-color: #fefefe;
             max-height: 400px;
             padding: 20px;
             border: 1px solid #888;
             width: 500px;
-        }
+        } */
     </style>
 </head>
 
@@ -251,12 +251,12 @@ ORDER BY u.lname ASC;
         <div id="evaluationResultsModal" class="modal"
             style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0, 0, 0, 0.6);">
             <div class="modal-content"
-                style="background-color: #fff; margin: 10% auto; padding: 20px; border-radius: 8px; width: 100%; max-width: 800px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
+                style="background-color: #fff;  padding: 20px; border-radius: 8px; width: 100%; max-width: 800px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
                 <span class="close-btn"
                     style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
                 <h3 style="text-align: center; font-family: Arial, sans-serif; color: #333; margin-bottom: 20px;">
                     Evaluation Results</h3>
-                <canvas id="evaluationChart" style="width: 100%; height: 300px; margin-bottom: 20px;"></canvas>
+                <canvas id="evaluationChart" style="width: 600px; height: 400px; margin-bottom: 20px;"></canvas>
                 <div class="average-rating" style="text-align: center; font-family: Arial, sans-serif; color: #333;">
                     <strong>Average Rating: </strong><span id="averageRating"
                         style="font-weight: bold; color: #007BFF;"></span>
@@ -363,8 +363,25 @@ ORDER BY u.lname ASC;
                     function displayEvaluationResults(response) {
                         const averageRatingSpan = document.getElementById('averageRating');
 
-                        // Update average rating
-                        averageRatingSpan.textContent = response.average_rating.toFixed(2);
+                        let totalRatings = 0;
+                        let totalRespondents = 0;
+                        response.evaluations.forEach((evaluation) => {
+                            const ratingCounts = evaluation.rating_counts;
+
+                            Object.entries(ratingCounts).forEach(([rating, count]) => {
+                                totalRatings += parseInt(rating) * count;
+                            });
+
+                            totalRespondents += evaluation.total_respondents;
+                        });
+
+                        // Calculate average rating
+                        const avgRating = totalRespondents > 0 ? totalRatings / totalRespondents : 0;
+
+                        // Update the UI
+                        averageRatingSpan.textContent = avgRating.toFixed(2);
+
+
 
                         // Prepare data for the chart
                         const labels = response.evaluations.map(evaluation => `Q${evaluation.question_id}`);

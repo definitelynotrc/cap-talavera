@@ -156,7 +156,7 @@ if (isset($_POST['submit']) && isset($_FILES['csvFile'])) {
                 if ($stmt->execute()) {
                     $_SESSION['success_message'] = "User {$data[0]} {$data[2]} inserted successfully.";
                     sendEmail($email, "$fname $lname", $tempPassword);
-                    $instructorsAdded++;
+                    $studentsAdded++;
                 } else {
                     $_SESSION['error_message'] = "Failed to insert user {$data[0]} {$data[2]}: " . $stmt->error;
                 }
