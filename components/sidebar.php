@@ -21,7 +21,7 @@
             </a>
         </li>
         <li id="dashboard">
-            <a href="dashboard.php"><span class="icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+            <a href="../dashboard.php"><span class="icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"
                         xmlns="http://www.w3.org/2000/svg">
                         <path d="M17 10H19C21 10 22 9 22 7V5C22 3 21 2 19 2H17C15 2 14 3 14 5V7C14 9 15 10 17 10Z"
                             stroke="white" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round"

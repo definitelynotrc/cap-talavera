@@ -369,6 +369,7 @@ WHERE uc.user_id = ?
             </div>
         </div>
     </div>
+    <script src="../js/sidebar.js"></script>
     <script>
         // Add event listener to filter evaluations by semester
         document.getElementById('semesterFilter').addEventListener('change', function () {
