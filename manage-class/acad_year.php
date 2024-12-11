@@ -130,32 +130,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 $currentYear = date('Y');
 
-// Create SQL query to update inactive academic years
 $sql = "UPDATE acad_year SET isActive = 0 WHERE year_end < :currentYear";
-
-// Prepare the SQL statement
 $stmt = $pdo->prepare($sql);
 
-// Bind the current year parameter
 $stmt->bindParam(':currentYear', $currentYear, PDO::PARAM_INT);
 
-// Try executing the query and check if it worked
 if ($stmt->execute()) {
-    // If the academic year is updated, now update advisory_class for inactive academic years
     $updateAdvisoryClassSql = "
         UPDATE advisory_class 
         SET isActive = 0 
         WHERE ay_id IN (SELECT ay_id FROM acad_year WHERE isActive = 0)
     ";
-
-    // Prepare the update query for advisory_class
     $updateStmt = $pdo->prepare($updateAdvisoryClassSql);
-
-    // Execute the query
     $updateStmt->execute();
 }
 
-// Check how many rows were updated
+
 
 
 ?>
