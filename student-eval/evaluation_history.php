@@ -251,7 +251,7 @@ $studentId = $user_id;
 
         <div class="main">
             <div class="custom-instructor-container">
-                <h1>Instructors</h1>
+                <h1>Evaluation History</h1>
                 <?php
                 // Fetch distinct semesters for the dropdown
                 $semestersQuery = "SELECT DISTINCT semesters, sem_id FROM semester ORDER BY semesters ASC";
@@ -261,7 +261,7 @@ $studentId = $user_id;
                 ?>
 
                 <!-- Semester Filter Dropdown -->
-                <div style="margin-bottom: 20px;">
+                <div style="margin-bottom: 20px; width: 10%;">
                     <label for="semesterFilter" style="font-weight: bold;">Filter by Semester:</label>
                     <select id="semesterFilter" name="semester" style="padding: 5px; margin-left: 10px;">
                         <option value=""> Semesters</option>

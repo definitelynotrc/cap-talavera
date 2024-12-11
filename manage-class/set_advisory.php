@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ':isActive' => $isActive,
     ]);
 
-    echo "<script>alert('Advisory Class assigned successfully!'); window.location.href = '';</script>";
+    echo "<script>alert('Advisory Class assigned successfully!'); window.location.href = 'manage_instructor_class.php';</script>";
 }
 
 ?>

@@ -287,148 +287,93 @@ if ($row = $result->fetch_assoc()) {
         </aside>
 
         <div class="main">
-
             <?php
-            $instructorId = isset($_GET['class_teacher_id']) ? $_GET['class_teacher_id'] : null;
-            $instructorName = '';
+            // Fetch distinct semesters for the dropdown
+            $semestersQuery = "SELECT DISTINCT semesters, sem_id FROM semester ORDER BY semesters ASC";
+            $semStmt = $conn->prepare($semestersQuery);
+            $semStmt->execute();
+            $semesters = $semStmt->get_result();
+            ?>
 
-            if ($instructorId) {
+            <div style="margin-bottom: 20px; width: 10%;">
+                <label for="semesterFilter" style="font-weight: bold;">Filter by Semester:</label>
+                <select id="semesterFilter" name="semester" style="padding: 5px; margin-left: 10px;">
+                    <option value=""> Semesters</option>
+                    <?php while ($row = $semesters->fetch_assoc()): ?>
+                        <option value="<?php echo htmlspecialchars($row['sem_id']); ?>">
+                            <?php echo htmlspecialchars($row['semesters']); ?>
+                        </option>
+                    <?php endwhile; ?>
+                </select>
+            </div>
 
-                $stmt = mysqli_prepare($conn, "SELECT u.fName, u.lName 
+            <h1>Evaluation History</h1>
+            <div class="evaluationContainer" style="display: flex; flex-direction: column;">
+                <?php
+                // Fetch instructor data with evaluation history for a specific semester
+                $semesterFilter = isset($_GET['semester']) ? $_GET['semester'] : ''; // Get the semester filter value
+                $instructorQuery = "
+SELECT 
+    u.user_id, 
+    u.fName, 
+    u.lName, 
+    ct.teacher_type,
+    ct.class_teacher_id, 
+    GROUP_CONCAT(DISTINCT s.subjects ORDER BY s.subjects SEPARATOR ', ') AS subjects,
+    e.date_created
 FROM users u
 JOIN class_teacher ct ON u.user_id = ct.user_id
-WHERE ct.class_teacher_id = ?
-");
-                mysqli_stmt_bind_param($stmt, 'i', $instructorId);
-                mysqli_stmt_execute($stmt);
-                $result = mysqli_stmt_get_result($stmt);
-
-                if ($instructor = mysqli_fetch_assoc($result)) {
-                    $instructorName = $instructor['fName'] . ' ' . $instructor['lName'];
-                }
-            }
-            ?>
-            <div class="evaluationContainer" style="display: flex; flex-direction: column;">
+JOIN subject s ON ct.sub_id = s.sub_id
+LEFT JOIN evaluation e ON ct.class_teacher_id = e.class_teacher_id
+JOIN advisory_class ac ON ct.advisory_class_id = ac.advisory_class_id
+WHERE u.role = 'Instructor' 
+AND (ac.sem_id = ? OR ? = '')
+AND e.eval_id IS NOT NULL  -- This ensures only evaluated instructors are shown
+GROUP BY u.user_id, u.fName, u.lName, ct.teacher_type, ct.class_teacher_id
+ORDER BY e.date_created DESC";
 
 
-                <?php
-                // Fetch instructor data
-                $instructorQuery = "
-    SELECT 
-        u.user_id, 
-        u.fName, 
-        u.lName, 
-        ct.teacher_type,
-        ct.class_teacher_id, 
-        GROUP_CONCAT(DISTINCT s.subjects ORDER BY s.subjects SEPARATOR ', ') AS subjects 
-    FROM users u
-    JOIN class_teacher ct ON u.user_id = ct.user_id
-    JOIN subject s ON ct.sub_id = s.sub_id
-    JOIN user_dep ud ON u.user_id = ud.user_id
-    WHERE ud.dep_id = ? AND u.role = 'Instructor'
-    GROUP BY u.user_id, u.fName, u.lName, ct.teacher_type";
+
 
                 $stmt = $conn->prepare($instructorQuery);
-                $stmt->bind_param('i', $userDepId);
+                $stmt->bind_param('is', $semesterFilter, $semesterFilter);
                 $stmt->execute();
                 $result = $stmt->get_result();
                 $instructors = $result->fetch_all(MYSQLI_ASSOC);
-
-                // Check if all instructors are evaluated
-                $allEvaluated = true; // Assume all are evaluated initially
-                foreach ($instructors as $row) {
-                    $evaluationQuery = "
-        SELECT eval_id 
-        FROM evaluation 
-        WHERE class_teacher_id = ? AND user_id = ?";
-                    $evalStmt = $conn->prepare($evaluationQuery);
-                    $evalStmt->bind_param('ii', $row['class_teacher_id'], $user_id);
-                    $evalStmt->execute();
-                    $evalResult = $evalStmt->get_result();
-                    if ($evalResult->num_rows === 0) {
-                        $allEvaluated = false;
-                        break;
-                    }
-                }
-
-                // Include your own evaluation status
-                $yourEvaluationQuery = "
-    SELECT eval_id 
-    FROM evaluation 
-    WHERE class_teacher_id = ? AND user_id = ?";
-                $yourEvalStmt = $conn->prepare($yourEvaluationQuery);
-                $yourEvalStmt->bind_param('ii', $row['class_teacher_id'], $user_id); // Use your actual user ID here
-                $yourEvalStmt->execute();
-                $yourEvalResult = $yourEvalStmt->get_result();
-                if ($yourEvalResult->num_rows === 0) {
-                    $allEvaluated = false;
-                }
                 ?>
 
-                <div class="custom-instructor-container">
-
-
-                    <?php if ($allEvaluated): ?>
-                        <!-- Modal for all evaluations completed -->
-                        <div class="evaluatedModal">
-                            <h2>Thank you!</h2>
-                            <p>You have completed all instructor evaluations for this term.</p>
-                        </div>
-                    <?php else: ?>
-                        <!-- Only show the table if not all evaluations are completed -->
-                        <?php if (!empty($instructors)): ?>
-                            <h1>Instructor List</h1>
-                            <table class="instructorTable" style="width: 100%; border-collapse: collapse;">
-                                <thead>
-                                    <tr>
-                                        <th style="border: 1px solid #ddd; padding: 8px;">Instructor Name</th>
-                                        <th style="border: 1px solid #ddd; padding: 8px;">Teacher Type</th>
-                                        <th style="border: 1px solid #ddd; padding: 8px;">Subjects</th>
-                                        <th style="border: 1px solid #ddd; padding: 8px;">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php foreach ($instructors as $row): ?>
-                                        <?php
-                                        $fullName = htmlspecialchars($row['fName']) . ' ' . htmlspecialchars($row['lName']);
-                                        $teacherType = htmlspecialchars($row['teacher_type']);
-                                        $subjectName = htmlspecialchars($row['subjects']);
-
-                                        $evaluationQuery = "
-                            SELECT eval_id 
-                            FROM evaluation 
-                            WHERE class_teacher_id = ? AND user_id = ?";
-                                        $evalStmt = $conn->prepare($evaluationQuery);
-                                        $evalStmt->bind_param('ii', $row['class_teacher_id'], $user_id);
-                                        $evalStmt->execute();
-                                        $evalResult = $evalStmt->get_result();
-                                        $evaluated = $evalResult->num_rows > 0 ? 'true' : 'false';
-                                        ?>
-                                        <tr>
-                                            <td style="border: 1px solid #ddd; padding: 8px;"><?php echo $fullName; ?></td>
-                                            <td style="border: 1px solid #ddd; padding: 8px;"><?php echo $teacherType; ?></td>
-                                            <td style="border: 1px solid #ddd; padding: 8px;"><?php echo $subjectName; ?></td>
-                                            <td style="border: 1px solid #ddd; padding: 8px;">
-                                                <?php if ($evaluated === 'false'): ?>
-                                                    <button class="custom-evaluate-btn">
-                                                        <a
-                                                            href="evaluation_form.php?class_teacher_id=<?= $row['class_teacher_id']; ?>&instructor_name=<?= urlencode($fullName); ?>">Evaluate</a>
-                                                    </button>
-                                                <?php else: ?>
-                                                    <span>Evaluated</span>
-                                                <?php endif; ?>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                </tbody>
-                            </table>
-                        <?php else: ?>
-                            <p class="custom-no-instructors">No instructors available for evaluation.</p>
-                        <?php endif; ?>
-                    <?php endif; ?>
-                </div>
-
+                <?php if (!empty($instructors)): ?>
+                    <table class="instructorTable" style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr>
+                                <th style="border: 1px solid #ddd; padding: 8px;">Instructor Name</th>
+                                <th style="border: 1px solid #ddd; padding: 8px;">Teacher Type</th>
+                                <th style="border: 1px solid #ddd; padding: 8px;">Subjects</th>
+                                <th style="border: 1px solid #ddd; padding: 8px;">Evaluation Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($instructors as $row): ?>
+                                <?php
+                                $fullName = htmlspecialchars($row['fName']) . ' ' . htmlspecialchars($row['lName']);
+                                $teacherType = htmlspecialchars($row['teacher_type']);
+                                $subjectName = htmlspecialchars($row['subjects']);
+                                $evaluationDate = $row['date_created'] ? date('Y-m-d', strtotime($row['date_created'])) : 'Not Evaluated';
+                                ?>
+                                <tr>
+                                    <td style="border: 1px solid #ddd; padding: 8px;"><?php echo $fullName; ?></td>
+                                    <td style="border: 1px solid #ddd; padding: 8px;"><?php echo $teacherType; ?></td>
+                                    <td style="border: 1px solid #ddd; padding: 8px;"><?php echo $subjectName; ?></td>
+                                    <td style="border: 1px solid #ddd; padding: 8px;"><?php echo $evaluationDate; ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                <?php else: ?>
+                    <p class="custom-no-instructors">No evaluation history available.</p>
+                <?php endif; ?>
             </div>
+
         </div>
 
 
@@ -466,7 +411,16 @@ WHERE ct.class_teacher_id = ?
                 const sidebar = document.querySelector('.navigation');
                 sidebar.classList.toggle('collapsed');
             }
-
+            document.getElementById('semesterFilter').addEventListener('change', function () {
+                const selectedSemester = this.value;
+                const url = new URL(window.location.href);
+                if (selectedSemester) {
+                    url.searchParams.set('semester', selectedSemester);
+                } else {
+                    url.searchParams.delete('semester');
+                }
+                window.location.href = url.toString();
+            });
 
 
         </script>

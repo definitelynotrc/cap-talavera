@@ -29,24 +29,34 @@ try {
     $departments = $departmentsStmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Handle form submission
+
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $user_id = $_POST['user_id'];
+        $user_ids = $_POST['user_ids'] ?? []; // Array of selected user IDs
         $dep_id = $_POST['dep_id'];
         $date_assigned = date('Y-m-d');
         $isActive = 1;
 
-        // Insert assignment into user_dep table
-        $assignQuery = "INSERT INTO user_dep (user_id, dep_id, isActive, date_assigned) VALUES (:user_id, :dep_id, :isActive, :date_assigned)";
-        $assignStmt = $conn->prepare($assignQuery);
-        $assignStmt->execute([
-            ':user_id' => $user_id,
-            ':dep_id' => $dep_id,
-            ':isActive' => $isActive,
-            ':date_assigned' => $date_assigned,
-        ]);
+        if (!empty($user_ids)) {
+            // Prepare the insert query
+            $assignQuery = "INSERT INTO user_dep (user_id, dep_id, isActive, date_assigned) VALUES (:user_id, :dep_id, :isActive, :date_assigned)";
+            $assignStmt = $conn->prepare($assignQuery);
 
-        echo "<script>alert('Department assigned successfully!'); window.location.href = '';</script>";
+            // Insert each user into the user_dep table
+            foreach ($user_ids as $user_id) {
+                $assignStmt->execute([
+                    ':user_id' => $user_id,
+                    ':dep_id' => $dep_id,
+                    ':isActive' => $isActive,
+                    ':date_assigned' => $date_assigned,
+                ]);
+            }
+
+            echo "<script>alert('Departments assigned successfully!'); window.location.href = '';</script>";
+        } else {
+            echo "<script>alert('Please select at least one user.'); window.location.href = '';</script>";
+        }
     }
+
 } catch (PDOException $e) {
     die("Connection failed: " . $e->getMessage());
 }
@@ -131,28 +141,36 @@ try {
             <h1>Assign Department to Users</h1>
 
             <form method="POST">
-                <label for="user_id">Select Users</label>
-                <select name="user_id" id="user_id" required>
-                    <option value="">-- Select Users --</option>
-                    <?php foreach ($instructors as $instructor): ?>
-                        <option value="<?= htmlspecialchars($instructor['user_id']) ?>">
-                            <?= htmlspecialchars($instructor['fullname']) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
+                <div class="form-group">
+                    <label for="dep_id">Select Department</label>
+                    <select name="dep_id" id="dep_id" required>
+                        <option value="">-- Select Department --</option>
+                        <?php foreach ($departments as $department): ?>
+                            <option value="<?= htmlspecialchars($department['dep_id']) ?>">
+                                <?= htmlspecialchars($department['department']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="user_ids">Select Users</label>
+                    <div id="user_ids">
+                        <?php foreach ($instructors as $instructor): ?>
+                            <label>
+                                <input type="checkbox" name="user_ids[]"
+                                    value="<?= htmlspecialchars($instructor['user_id']) ?>">
+                                <?= htmlspecialchars($instructor['fullname']) ?>
+                            </label>
+                            <br>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
 
-                <label for="dep_id">Select Department</label>
-                <select name="dep_id" id="dep_id" required>
-                    <option value="">-- Select Department --</option>
-                    <?php foreach ($departments as $department): ?>
-                        <option value="<?= htmlspecialchars($department['dep_id']) ?>">
-                            <?= htmlspecialchars($department['department']) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
+
 
                 <button type="submit">Assign Department</button>
             </form>
+
         </div>
     </div>
 
