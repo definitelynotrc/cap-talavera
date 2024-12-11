@@ -293,6 +293,8 @@ $result = $conn->query($sql);
 if ($result === FALSE) {
     echo "Error: " . $conn->error;
 }
+
+
 ?>
 
 
@@ -304,6 +306,7 @@ if ($result === FALSE) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Admins</title>
     <link rel="stylesheet" href="../sidebar.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 </head>
 
@@ -366,11 +369,15 @@ if ($result === FALSE) {
                         </option>
                     </select>
                 </form>
+                <div class="search-wrapper">
+                    <input type="text" id="searchInput" class="form-control" placeholder="Search for admins...">
+                </div>
+
             </div>
 
 
             <div class="table-wrapper">
-                <table class="table table-bordered">
+                <table class="table table-bordered" id="adminTable">
                     <thead>
                         <tr>
                             <th>Full Name</th>
@@ -600,10 +607,24 @@ if ($result === FALSE) {
 
 
 
+
+
     <script>
+        $(document).ready(function () {
+            // Search functionality
+            $("#searchInput").on("keyup", function () {
+                var value = $(this).val().toLowerCase();
+                $("#adminTable tbody tr").filter(function () {
+                    var rowText = $(this).text().toLowerCase();
+                    $(this).toggle(rowText.indexOf(value) > -1);
+                });
+            });
+        });
 
 
-        function openEditModal(userId, fname, mname, lname, suffixname, contact, houseno, street, barangay, city, province, postalcode, birthdate, gender, email, role,) {
+
+        function openEditModal(userId, fname, mname, lname, suffixname, contact, houseno, street, barangay, city, province,
+            postalcode, birthdate, gender, email, role,) {
             document.getElementById('editUserId').value = userId;
             document.getElementById('editFname').value = fname;
             document.getElementById('editMname').value = mname;

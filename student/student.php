@@ -304,6 +304,7 @@ if ($result === FALSE) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Student</title>
     <link rel="stylesheet" href="../sidebar.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 </head>
 
@@ -358,13 +359,15 @@ if ($result === FALSE) {
                     </option>
                 </select>
             </form>
-
+            <div class="search-wrapper">
+                <input type="text" id="searchInput" class="form-control" placeholder="Search for instructors...">
+            </div>
             <h2><?php echo ucfirst($filter); ?> Students</h2>
             <!-- Button to open the modal -->
             <button type="button" class="btn1 btn-primary" style="" onclick="openModal()">Add Student Manually</button>
 
             <div class="table-wrapper">
-                <table class="table table-bordered">
+                <table class="table table-bordered" id="studentTable">
                     <thead>
                         <tr>
                             <th>Full Name</th>
@@ -591,7 +594,16 @@ if ($result === FALSE) {
     <script src="../js/sidebar.js"></script>
 
     <script>
-
+        $(document).ready(function () {
+            // Search functionality
+            $("#searchInput").on("keyup", function () {
+                var value = $(this).val().toLowerCase();
+                $("#studentTable tbody tr").filter(function () {
+                    var rowText = $(this).text().toLowerCase();
+                    $(this).toggle(rowText.indexOf(value) > -1);
+                });
+            });
+        });
         // JavaScript to open the modal and populate the user data for editing
         function openEditModal(userId, fname, mname, lname, suffixname, contact, houseno, street, barangay, city, province, postalcode, birthdate, gender, email, role,) {
             document.getElementById('editUserId').value = userId;

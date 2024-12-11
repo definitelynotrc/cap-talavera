@@ -106,6 +106,19 @@ if ($conn->connect_error) {
         td {
             border: 1px solid #ddd;
         }
+
+        #evaluationResultsModal {
+
+            width: 100%;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            max-height: 400px;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 500px;
+        }
     </style>
 </head>
 
@@ -234,19 +247,23 @@ ORDER BY u.lname ASC;
             </div>
         </div>
         <!-- Modal for displaying evaluation results -->
-        <div id="evaluationResultsModal" class="modal">
-            <div class="modal-content">
-                <span class="close-btn">&times;</span>
-                <h3>Evaluation Results</h3>
-                <div id="evaluationResults"></div>
-                <div>
-                    <strong>Average Rating: </strong><span id="averageRating"></span>
+        <div id="evaluationResultsModal" class="modal"
+            style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0, 0, 0, 0.6);">
+            <div class="modal-content"
+                style="background-color: #fff; margin: 10% auto; padding: 20px; border-radius: 8px; width: 100%; max-width: 800px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
+                <span class="close-btn"
+                    style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
+                <h3 style="text-align: center; font-family: Arial, sans-serif; color: #333; margin-bottom: 20px;">
+                    Evaluation Results</h3>
+                <canvas id="evaluationChart" style="width: 100%; height: 300px; margin-bottom: 20px;"></canvas>
+                <div class="average-rating" style="text-align: center; font-family: Arial, sans-serif; color: #333;">
+                    <strong>Average Rating: </strong><span id="averageRating"
+                        style="font-weight: bold; color: #007BFF;"></span>
                 </div>
             </div>
         </div>
-        <!-- <div id="evaluationResults">
-       
-    </div> -->
+
+
 
         <script src="../js/sidebar.js"></script>
         <script>
@@ -299,73 +316,121 @@ ORDER BY u.lname ASC;
                     });
                 });
 
-                // Open the modal when the "Generate Results" button is clicked
-                $(document).on('click', '.generate-evaluations-btn', function () {
-                    const instructorId = $(this).data('instructor-id');
-
-                    // Show the modal
-                    document.getElementById('evaluationResultsModal').style.display = 'block';
-
-                    // Fetch evaluation results for this instructor
-                    fetchEvaluationResults(instructorId);
-                });
 
                 // Close the modal when the close button is clicked
                 $('.close-btn').click(function () {
                     document.getElementById('evaluationResultsModal').style.display = 'none';
                 });
 
-                // Function to fetch evaluation results via AJAX
-                function fetchEvaluationResults(instructorId) {
-                    const xhr = new XMLHttpRequest();
-                    xhr.open('POST', 'fetch_evaluation_results.php', true);
-                    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-                    xhr.onreadystatechange = function () {
-                        if (xhr.readyState == 4 && xhr.status == 200) {
-                            const response = JSON.parse(xhr.responseText);
-                            if (response.error) {
-                                alert(response.error);
-                            } else {
-                                displayEvaluationResults(response);
+                const script = document.createElement("script");
+                script.src = "https://cdn.jsdelivr.net/npm/chart.js";
+                document.head.appendChild(script);
+
+                script.onload = function () {
+                    // Chart.js loaded, initialize logic
+                    let evaluationChart;
+
+
+
+                    function fetchEvaluationResults(instructorId) {
+                        const xhr = new XMLHttpRequest();
+                        xhr.open('POST', 'fetch_evaluation_results.php', true);
+                        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                        xhr.onreadystatechange = function () {
+                            if (xhr.readyState == 4 && xhr.status == 200) {
+                                const response = JSON.parse(xhr.responseText);
+                                if (response.error) {
+                                    alert(response.error);
+                                } else {
+                                    displayEvaluationResults(response);
+                                }
                             }
-                        }
-                    };
-                    xhr.send('instructor_id=' + instructorId);
-                }
+                        };
+                        xhr.send('instructor_id=' + instructorId);
+                    }
+                    $(document).on('click', '.generate-evaluations-btn', function () {
+                        const instructorId = $(this).data('instructor-id');
 
-                // Function to display the evaluation results in the modal
-                function displayEvaluationResults(response) {
-                    const evaluationResultsDiv = document.getElementById('evaluationResults');
-                    const averageRatingSpan = document.getElementById('averageRating');
+                        // Show the modal
+                        document.getElementById('evaluationResultsModal').style.display = 'block';
 
-                    // Clear previous results
-                    evaluationResultsDiv.innerHTML = '';
-
-                    let evalResultsHTML = '';
-                    let ratingCounts = {}; // Object to store rating counts for each question
-
-                    response.evaluations.forEach((evaluation, index) => {
-                        evalResultsHTML += `Evaluation ${index + 1}:<br>`;
-                        evalResultsHTML += `<strong>Question ${evaluation.question_id}:</strong> ${evaluation.question_text}<br>`;
-
-                        // Loop through the ratings for each question and count them
-                        const counts = evaluation.rating_counts;
-                        evalResultsHTML += `
-             Outstanding - ${counts[5]}<br>
-           Very Satisfactory - ${counts[4]}<br>
-            Satisfactory- ${counts[3]}<br>
-            Poor- ${counts[2]}<br>
-             Very Poor - ${counts[1]}<br><br>
-        `;
+                        // Fetch evaluation results for this instructor
+                        fetchEvaluationResults(instructorId);
                     });
 
+                    function displayEvaluationResults(response) {
+                        const averageRatingSpan = document.getElementById('averageRating');
 
+                        // Update average rating
+                        averageRatingSpan.textContent = response.average_rating.toFixed(2);
 
-                    // Display the evaluation results in the modal
-                    evaluationResultsDiv.innerHTML = evalResultsHTML;
-                    averageRatingSpan.textContent = response.average_rating.toFixed(2);
-                }
+                        // Prepare data for the chart
+                        const labels = response.evaluations.map(evaluation => `Q${evaluation.question_id}`);
+                        const outstanding = response.evaluations.map(evaluation => evaluation.rating_counts[5]);
+                        const verySatisfactory = response.evaluations.map(evaluation => evaluation.rating_counts[4]);
+                        const satisfactory = response.evaluations.map(evaluation => evaluation.rating_counts[3]);
+                        const poor = response.evaluations.map(evaluation => evaluation.rating_counts[2]);
+                        const veryPoor = response.evaluations.map(evaluation => evaluation.rating_counts[1]);
 
+                        const chartData = {
+                            labels: labels,
+                            datasets: [
+                                {
+                                    label: 'Outstanding',
+                                    data: outstanding,
+                                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                                },
+                                {
+                                    label: 'Very Satisfactory',
+                                    data: verySatisfactory,
+                                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                                },
+                                {
+                                    label: 'Satisfactory',
+                                    data: satisfactory,
+                                    backgroundColor: 'rgba(255, 206, 86, 0.6)',
+                                },
+                                {
+                                    label: 'Poor',
+                                    data: poor,
+                                    backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                                },
+                                {
+                                    label: 'Very Poor',
+                                    data: veryPoor,
+                                    backgroundColor: 'rgba(153, 102, 255, 0.6)',
+                                },
+                            ],
+                        };
+
+                        const chartConfig = {
+                            type: 'bar', // Use 'bar' for a bar chart
+                            data: chartData,
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    legend: {
+                                        position: 'top',
+                                    },
+                                    title: {
+                                        display: true,
+                                        text: 'Evaluation Results by Question',
+                                    },
+                                },
+                            },
+                        };
+
+                        // Destroy any existing chart instance
+                        if (evaluationChart) {
+                            evaluationChart.destroy();
+                        }
+
+                        // Create new chart instance
+                        const ctx = document.getElementById('evaluationChart').getContext('2d');
+                        evaluationChart = new Chart(ctx, chartConfig);
+                    }
+
+                };
 
             });
 
