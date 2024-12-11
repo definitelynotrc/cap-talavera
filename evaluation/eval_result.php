@@ -157,7 +157,7 @@ if ($conn->connect_error) {
         <?php include '../components/sidebar.php'; ?>
         <div class="main">
 
-            <table class="table ta">
+            <table class="table ">
                 <h2 style="margin-left: 10px;">Evaluation Results</h2>
                 <thead>
                     <tr>
@@ -223,10 +223,11 @@ ORDER BY u.lname ASC;
 
             <div id="evaluation-details" style="display: none;  background-color: #F2F2F2;">
                 <h3>Evaluation Details</h3>
-                <button id="printBtn">Print Evaluations</button>
+                <button id="printBtn" class="printBtn">Print Evaluations</button>
 
 
                 <div id="evaluator-info">
+
                     <!-- Dynamic Evaluator Info -->
                 </div>
                 <table class="table2">
@@ -279,6 +280,7 @@ ORDER BY u.lname ASC;
             <style>
                 body { font-family: Arial, sans-serif; }
                 .evaluator-name { display: none; } /* Hide evaluator's name during print */
+                .printBtn { display: none; } /* Hide the print button during print */
                 table { width: 100%; border-collapse: collapse; }
                 th, td { padding: 8px; text-align: left; border: 1px solid #ddd; }
             </style>

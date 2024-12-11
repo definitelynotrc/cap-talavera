@@ -58,21 +58,25 @@ if (isset($_POST['instructor_id'])) {
                     $evaluationTables .= '</table><br>'; // Close the previous table
                 }
 
+
                 // Start a new table for this evaluation
                 $evaluationTables .= '<table class="evaluation-table">';
                 $evaluationTables .= '<tr><th colspan="6">';
-
+                $evaluationTables .= '<div style="display: flex; flex-direction: row; justify-content: space-between;">';
                 $evaluationTables .= '<span class="evaluated-name"><strong>Being Evaluated:</strong> ' . htmlspecialchars($row['evaluator_name']) . '</span><br>';
+                $evaluationTables .= '<button class="printBtn " style="font-size: 12px; width: 20%; padding: 5px 10px;">Print Evaluation</button>';
+                $evaluationTables .= '</div>';
+                $evaluationTables .= '<div style="display: flex;  justify-content: space-between; align-items: center; flex-direction: column;">';
+                $evaluationTables .= '<span class="prof"><strong>Professor/Instructor Evaluation Form</strong></span> ';
+                $evaluationTables .= '<span class="directions"><strong>Directions:</strong>   This questionnaire seeks your objective, honest, and fair evaluation
+                    of the Professors/Instructors performance. Please indicate your rating on the different items
+                    by selecting the rating in the corresponding column provided. </span>';
 
-                $evaluationTables .= '<div style="display: flex;  justify-content: space-between; align-items: center;">';
-
-
-                $evaluationTables .= '<span><strong>Date: ' . htmlspecialchars(date("M d, Y", strtotime($row['evaluation_date']))) . '</strong></span>';
 
                 // Print button on the right
-                $evaluationTables .= '<button class="printBtn " style="font-size: 12px; width: 50%; padding: 5px 10px;">Print Evaluation</button>';
 
                 $evaluationTables .= '</div><br>';
+                $evaluationTables .= '<span><strong>Date: ' . htmlspecialchars(date("M d, Y", strtotime($row['evaluation_date']))) . '</strong></span> <br>';
 
                 // Show Evaluator's name (but won't be printed)
                 $evaluationTables .= '<span class="evaluator-name"><strong>Evaluator:</strong> ' . htmlspecialchars($row['evaluated_name']) . '</span><br>';
