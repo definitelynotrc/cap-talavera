@@ -298,13 +298,14 @@ if ($row = $result->fetch_assoc()) {
             <div style="margin-bottom: 20px; width: 10%;">
                 <label for="semesterFilter" style="font-weight: bold;">Filter by Semester:</label>
                 <select id="semesterFilter" name="semester" style="padding: 5px; margin-left: 10px;">
-                    <option value=""> Semesters</option>
+                    <option value="">Semesters</option>
                     <?php while ($row = $semesters->fetch_assoc()): ?>
-                        <option value="<?php echo htmlspecialchars($row['sem_id']); ?>">
+                        <option value="<?php echo htmlspecialchars($row['sem_id']); ?>" <?php echo isset($_GET['semester']) && $_GET['semester'] == $row['sem_id'] ? 'selected' : ''; ?>>
                             <?php echo htmlspecialchars($row['semesters']); ?>
                         </option>
                     <?php endwhile; ?>
                 </select>
+
             </div>
 
             <h1>Evaluation History</h1>
@@ -313,30 +314,31 @@ if ($row = $result->fetch_assoc()) {
                 // Fetch instructor data with evaluation history for a specific semester
                 $semesterFilter = isset($_GET['semester']) ? $_GET['semester'] : ''; // Get the semester filter value
                 $instructorQuery = "
-SELECT 
-    u.user_id, 
-    u.fName, 
-    u.lName, 
-    ct.teacher_type,
-    ct.class_teacher_id, 
-    GROUP_CONCAT(DISTINCT s.subjects ORDER BY s.subjects SEPARATOR ', ') AS subjects,
-    e.date_created
-FROM users u
-JOIN class_teacher ct ON u.user_id = ct.user_id
-JOIN subject s ON ct.sub_id = s.sub_id
-LEFT JOIN evaluation e ON ct.class_teacher_id = e.class_teacher_id
-JOIN advisory_class ac ON ct.advisory_class_id = ac.advisory_class_id
-WHERE u.role = 'Instructor' 
-AND (ac.sem_id = ? OR ? = '')
-AND e.eval_id IS NOT NULL  -- This ensures only evaluated instructors are shown
-GROUP BY u.user_id, u.fName, u.lName, ct.teacher_type, ct.class_teacher_id
-ORDER BY e.date_created DESC";
+    SELECT 
+        u.user_id, 
+        u.fName, 
+        u.lName, 
+        GROUP_CONCAT(DISTINCT ct.teacher_type ORDER BY ct.teacher_type SEPARATOR ', ') AS teacher_types,
+        GROUP_CONCAT(DISTINCT s.subjects ORDER BY s.subjects SEPARATOR ', ') AS subjects,
+        e.date_created
+    FROM users u
+    JOIN class_teacher ct ON u.user_id = ct.user_id
+    LEFT JOIN subject s ON ct.sub_id = s.sub_id
+    LEFT JOIN evaluation e ON ct.class_teacher_id = e.class_teacher_id
+    JOIN advisory_class ac ON ct.advisory_class_id = ac.advisory_class_id
+    WHERE u.role = 'Instructor' 
+    AND (ac.sem_id = ? OR ? = '')
+    AND e.eval_id IS NOT NULL  -- This ensures only evaluated instructors are shown
+    AND e.user_id = ?  -- Filter by the evaluator's ID (replace with the actual column if different)
+    GROUP BY u.user_id, u.fName, u.lName
+    ORDER BY e.date_created DESC";
+
 
 
 
 
                 $stmt = $conn->prepare($instructorQuery);
-                $stmt->bind_param('is', $semesterFilter, $semesterFilter);
+                $stmt->bind_param('isi', $semesterFilter, $semesterFilter, $user_id);
                 $stmt->execute();
                 $result = $stmt->get_result();
                 $instructors = $result->fetch_all(MYSQLI_ASSOC);
@@ -356,7 +358,7 @@ ORDER BY e.date_created DESC";
                             <?php foreach ($instructors as $row): ?>
                                 <?php
                                 $fullName = htmlspecialchars($row['fName']) . ' ' . htmlspecialchars($row['lName']);
-                                $teacherType = htmlspecialchars($row['teacher_type']);
+                                $teacherType = htmlspecialchars($row['teacher_types']);
                                 $subjectName = htmlspecialchars($row['subjects']);
                                 $evaluationDate = $row['date_created'] ? date('Y-m-d', strtotime($row['date_created'])) : 'Not Evaluated';
                                 ?>

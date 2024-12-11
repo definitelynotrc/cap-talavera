@@ -318,15 +318,18 @@ WHERE ct.class_teacher_id = ?
         u.user_id, 
         u.fName, 
         u.lName, 
-        ct.teacher_type,
         ct.class_teacher_id, 
-        GROUP_CONCAT(DISTINCT s.subjects ORDER BY s.subjects SEPARATOR ', ') AS subjects 
+        GROUP_CONCAT(DISTINCT ct.teacher_type ORDER BY ct.teacher_type SEPARATOR ', ') AS teacher_types, 
+        GROUP_CONCAT(DISTINCT s.subjects ORDER BY s.subjects SEPARATOR ', ') AS subjects
     FROM users u
     JOIN class_teacher ct ON u.user_id = ct.user_id
-    JOIN subject s ON ct.sub_id = s.sub_id
+    LEFT JOIN subject s ON ct.sub_id = s.sub_id
     JOIN user_dep ud ON u.user_id = ud.user_id
     WHERE ud.dep_id = ? AND u.role = 'Instructor'
-    GROUP BY u.user_id, u.fName, u.lName, ct.teacher_type";
+    GROUP BY u.user_id, u.fName, u.lName";
+
+
+
 
                 $stmt = $conn->prepare($instructorQuery);
                 $stmt->bind_param('i', $userDepId);
@@ -377,7 +380,7 @@ WHERE ct.class_teacher_id = ?
                     <?php else: ?>
                         <!-- Only show the table if not all evaluations are completed -->
                         <?php if (!empty($instructors)): ?>
-                            <h1>Instructor List</h1>
+                            <h1>Co-Instructor List</h1>
                             <table class="instructorTable" style="width: 100%; border-collapse: collapse;">
                                 <thead>
                                     <tr>
@@ -391,7 +394,7 @@ WHERE ct.class_teacher_id = ?
                                     <?php foreach ($instructors as $row): ?>
                                         <?php
                                         $fullName = htmlspecialchars($row['fName']) . ' ' . htmlspecialchars($row['lName']);
-                                        $teacherType = htmlspecialchars($row['teacher_type']);
+                                        $teacherType = htmlspecialchars($row['teacher_types']);
                                         $subjectName = htmlspecialchars($row['subjects']);
 
                                         $evaluationQuery = "

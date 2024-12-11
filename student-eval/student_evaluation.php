@@ -16,8 +16,6 @@ if ($conn->connect_error) {
 }
 
 
-
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -313,7 +311,8 @@ WHERE ct.class_teacher_id = ?
     JOIN class_teacher ct ON ac.advisory_class_id = ct.advisory_class_id
     JOIN subject s ON ct.sub_id = s.sub_id
     JOIN users u ON ct.user_id = u.user_id
-    JOIN class c ON ac.class_id = c.class_id
+    JOIN class_dep cd ON ac.class_dep_id = cd.class_dep_id
+    JOIN class c ON cd.class_id = c.class_id
     WHERE uc.user_id = ? 
     GROUP BY s.sub_id, ct.class_teacher_id
     ORDER BY s.subjects;
@@ -361,6 +360,7 @@ WHERE ct.class_teacher_id = ?
                     <?php else: ?>
                         <h1>Instructors</h1>
                         <table class="instructorContainer" style="width: 100%; border-collapse: collapse;">
+
                             <thead>
                                 <tr>
                                     <th style="border: 1px solid #ddd; padding: 8px;">Instructor Name</th>

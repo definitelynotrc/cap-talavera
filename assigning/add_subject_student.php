@@ -13,13 +13,14 @@ if ($conn->connect_error) {
 
 $query = "
     SELECT s.sub_id, s.code, s.description, CONCAT(u.fname, ' ', u.lname) AS instructor_name,
-    c.year_level, sec.sections, sem.semesters, ac.advisory_class_id
+    cl.year_level, sec.sections, sem.semesters, ac.advisory_class_id
     FROM class_teacher ct
     JOIN subject s ON ct.sub_id = s.sub_id
     JOIN users u ON ct.user_id = u.user_id
     JOIN advisory_class ac ON ct.advisory_class_id = ac.advisory_class_id
-    JOIN class c ON ac.class_id = c.class_id
-    JOIN section sec ON c.section_id = sec.section_id
+    JOIN class_dep c ON ac.class_dep_id = c.class_dep_id
+    JOIN class cl ON c.class_id = cl.class_id
+    JOIN section sec ON cl.section_id = sec.section_id
     JOIN semester sem ON ac.sem_id = sem.sem_id
 
 ";

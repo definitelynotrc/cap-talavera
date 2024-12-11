@@ -18,24 +18,8 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 // Fetch departments from the department table
-$yearLevels = [];
-$classQuery = "SELECT class_id, year_level FROM class ORDER BY year_level ASC";
-$classResult = $conn->query($classQuery);
-if ($classResult && $classResult->num_rows > 0) {
-    while ($row = $classResult->fetch_assoc()) {
-        $yearLevels[] = $row;
-    }
-}
 
-// Fetch departments dynamically
-$departments = [];
-$departmentQuery = "SELECT dep_id, department FROM department ORDER BY department ASC";
-$departmentResult = $conn->query($departmentQuery);
-if ($departmentResult && $departmentResult->num_rows > 0) {
-    while ($row = $departmentResult->fetch_assoc()) {
-        $departments[] = $row;
-    }
-}
+
 
 
 
@@ -46,9 +30,8 @@ if (isset($_GET['section_id'])) {
 
     $stmt = $conn->prepare("
     SELECT * 
-    FROM section s
-    INNER JOIN class c ON c.section_id = s.section_id
-    WHERE s.section_id = ?
+    FROM section 
+    WHERE section_id = ?
 ");
     $stmt->bind_param("i", $section_id);
     $stmt->execute();
@@ -94,21 +77,11 @@ if ($filter == 'archived') {
     $sql = "SELECT * FROM section WHERE status = 'active'";
 }
 
-$query = "SELECT 
-    class.class_id,
-    class.section_id,
-    section.sections AS section_name,
-    section.status AS section_status,
-    department.department AS department_name,
-    class.year_level
-FROM 
-    class
-INNER JOIN 
-    section ON class.section_id = section.section_id
-    INNER JOIN department ON section.dep_id = department.dep_id"
+$query = " 
+        SELECT * 
+    FROM section 
+"
 ;
-
-
 
 $result = $conn->query($query);
 
@@ -423,8 +396,6 @@ if ($result === FALSE) {
                 <thead>
                     <tr>
                         <th>Section</th>
-                        <th>Department</th>
-                        <th>Year Level</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
@@ -433,14 +404,13 @@ if ($result === FALSE) {
                     <?php if ($result->num_rows > 0): ?>
                         <?php while ($row = $result->fetch_assoc()): ?>
                             <tr>
-                                <td><?php echo $row['section_name']; ?></td>
-                                <td><?php echo $row['department_name']; ?></td>
-                                <td><?php echo $row['year_level']; ?></td>
-                                <td><?php echo ucfirst($row['section_status']); ?></td>
+                                <td><?php echo $row['sections']; ?></td>
+
+                                <td><?php echo ucfirst($row['status']); ?></td>
                                 <td>
                                     <!-- Edit Button -->
                                     <button class="btn edit-btn"
-                                        onclick="openEditModal(<?php echo $row['section_id']; ?>, '<?php echo $row['section_name']; ?>', '<?php echo $row['section_status']; ?>')">Edit</button>
+                                        onclick="openEditModal(<?php echo $row['section_id']; ?>, '<?php echo $row['sections']; ?>', '<?php echo $row['status']; ?>')">Edit</button>
                                     <!-- Archive Button -->
                                     <a href="section.php?archive=true&section_id=<?php echo $row['section_id']; ?>"
                                         class="btn archive-btn">Archive</a>
@@ -474,36 +444,6 @@ if ($result === FALSE) {
                 <input type="text" name="sections" id="sections" class="form-input" placeholder="Enter section name"
                     required>
             </div>
-            <div class="form-group">
-                <label for="department" class="form-label">Department</label>
-                <select name="dep_id" id=" department" class="form-input" required>
-                    <option value="">Select Department</option>
-                    <?php foreach ($departments as $department): ?>
-                        <option value="<?= htmlspecialchars($department['dep_id']); ?>">
-                            <?= htmlspecialchars($department['department']); ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="year_level" class="form-label">Year Level</label>
-                <select name="year_level" id="year_level" class="form-input" required>
-                    <option value="">Select Year Level</option>
-                    <option value="1">
-                        1
-                    </option>
-                    <option value="2">
-                        2
-                    </option>
-                    <option value="3">
-                        3
-                    </option>
-                    <option value="4">
-                        4
-                    </option>
-                </select>
-            </div>
             <input type="hidden" name="status" value="active"> <!-- Default Status -->
             <button type="submit" name="add" class="submit-btn">Add Section</button>
         </form>
@@ -527,50 +467,16 @@ if ($result === FALSE) {
                     <option value="archived">Archived</option>
                 </select>
             </div>
-            <div class="form-group">
-                <label for="department" class="form-label">Department</label>
-                <select name="department" id="department" class="form-input" required>
-                    <option value="">Select Department</option>
-                    <?php foreach ($departments as $department): ?>
-                        <option value="<?php echo $department['dep_id']; ?>" <?php echo isset($sectionToEdit) && $sectionToEdit['dep_id'] == $department['dep_id'] ? 'selected' : ''; ?>>
-                            <?php echo htmlspecialchars($department['department']); ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="form-group">
-                <div class="form-group">
-                    <select name="year_level" id="year_level" class="form-input" required>
-                        <option value="1" <?php echo (!empty($sectionToEdit['class_id']) && $sectionToEdit['class_id'] == 1) ? 'selected' : ''; ?>>First Year</option>
-                        <option value="2" <?php echo (!empty($sectionToEdit['class_id']) && $sectionToEdit['class_id'] == 2) ? 'selected' : ''; ?>>Second Year</option>
-                        <option value="3" <?php echo (!empty($sectionToEdit['class_id']) && $sectionToEdit['class_id'] == 3) ? 'selected' : ''; ?>>Third Year</option>
-                        <option value="4" <?php echo (!empty($sectionToEdit['class_id']) && $sectionToEdit['class_id'] == 4) ? 'selected' : ''; ?>>Fourth Year</option>
-                    </select>
-                </div>
-
-
-
-            </div>
             <button type="submit" name="edit" class="submit-btn">Update Section</button>
-        </form>
     </div>
+
+    </form>
+</div>
+</div>
 </div>
 
 
-<div id="addSubjectModal">
-    <div id="modalContent">
-        <span id="closeBtn" onclick="closeAddSubjectModal()">&times;</span>
-        <h3 id="modalHeader">Add Subjects to Section</h3>
-        <form id="addSubjectForm">
-            <label for="subjectSelect">Select Subjects:</label>
-            <select id="subjectSelect" name="subjects[]" multiple>
-                <!-- Dynamically populated options will go here -->
-            </select>
-            <input type="hidden" id="section_id" name="section_id">
-            <button type="submit" id="addSubjectBtn">Add Subjects</button>
-        </form>
-    </div>
-</div>
+
 <script src="../js/sidebar.js"></script>
 
 <script>

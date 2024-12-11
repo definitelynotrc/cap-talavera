@@ -93,132 +93,78 @@
                 <span class="icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"
                         xmlns="http://www.w3.org/2000/svg">
                         <path
-                            d="M6.44 2H17.55C21.11 2 22 2.89 22 6.44V12.77C22 16.33 21.11 17.21 17.56 17.21H6.44C2.89 17.22 2 16.33 2 12.78V6.44C2 2.89 2.89 2 6.44 2Z"
+                            d="M7.25998 2H16.73C17.38 2 17.96 2.02003 18.48 2.09003C21.25 2.40003 22 3.70001 22 7.26001V13.58C22 17.14 21.25 18.44 18.48 18.75C17.96 18.82 17.39 18.84 16.73 18.84H7.25998C6.60998 18.84 6.02998 18.82 5.50998 18.75C2.73998 18.44 1.98999 17.14 1.98999 13.58V7.26001C1.98999 3.70001 2.73998 2.40003 5.50998 2.09003C6.02998 2.02003 6.60998 2 7.25998 2Z"
                             stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                        <path d="M12 17.22V22" stroke="white" stroke-width="1.5" stroke-linecap="round"
+                        <path d="M13.58 8.32007H17.2599" stroke="white" stroke-width="1.5" stroke-linecap="round"
                             stroke-linejoin="round" />
-                        <path d="M2 13H22" stroke="white" stroke-width="1.5" stroke-linecap="round"
+                        <path d="M6.73999 14.11H6.75998H17.27" stroke="white" stroke-width="1.5" stroke-linecap="round"
                             stroke-linejoin="round" />
-                        <path d="M7.5 22H16.5" stroke="white" stroke-width="1.5" stroke-linecap="round"
+                        <path d="M7 22H17" stroke="white" stroke-width="1.5" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                        <path d="M7.1947 8.30005H7.20368" stroke="white" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                        <path d="M10.4945 8.30005H10.5035" stroke="white" stroke-width="2" stroke-linecap="round"
                             stroke-linejoin="round" />
                     </svg>
 
+
                 </span>
-                <span class="title">Department</span>
+                <span class="title">Utilities</span>
             </div>
             <ul class="departmentDropdown" id="departmentDropdown">
+                <li><a href="../manage-class/acad_year.php">Manage Academic Years</a></li>
                 <li>
                     <a href="../department/department.php">Manage Departments</a>
                 </li>
+                <li><a href="../manage-class/class.php">Manage Class</a></li>
+                <li><a href="../manage-class/section.php">Manage Sections</a></li>
+                <li><a href="../subject/subject.php">Manage Subjects</a></li>
 
-                <li>
-                    <a href="../department/user_dep.php">Manage User Deparment</a>
-                </li>
+                <li><a href="../manage-class/semester.php">Manage Semesters</a></li>
+
+
+
             </ul>
         </li>
         <li id="classes" onclick="showClassesDropdown()">
             <div style="display: flex; gap: 8px; align-items: center;">
                 <span class="icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"
                         xmlns="http://www.w3.org/2000/svg">
-                        <path d="M8 2V5" stroke="white" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round"
+                        <path d="M12.37 8.87988H17.62" stroke="white" stroke-width="1.5" stroke-linecap="round"
                             stroke-linejoin="round" />
-                        <path d="M16 2V5" stroke="white" stroke-width="1.5" stroke-miterlimit="10"
+                        <path d="M6.38 8.87988L7.13 9.62988L9.38 7.37988" stroke="white" stroke-width="1.5"
                             stroke-linecap="round" stroke-linejoin="round" />
-                        <path d="M3.5 9.08997H20.5" stroke="white" stroke-width="1.5" stroke-miterlimit="10"
+                        <path d="M12.37 15.8799H17.62" stroke="white" stroke-width="1.5" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                        <path d="M6.38 15.8799L7.13 16.6299L9.38 14.3799" stroke="white" stroke-width="1.5"
                             stroke-linecap="round" stroke-linejoin="round" />
-                        <path
-                            d="M21 8.5V17C21 20 19.5 22 16 22H8C4.5 22 3 20 3 17V8.5C3 5.5 4.5 3.5 8 3.5H16C19.5 3.5 21 5.5 21 8.5Z"
-                            stroke="white" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round"
-                            stroke-linejoin="round" />
-                        <path d="M15.6947 13.7H15.7037" stroke="white" stroke-width="2" stroke-linecap="round"
-                            stroke-linejoin="round" />
-                        <path d="M15.6947 16.7H15.7037" stroke="white" stroke-width="2" stroke-linecap="round"
-                            stroke-linejoin="round" />
-                        <path d="M11.9955 13.7H12.0045" stroke="white" stroke-width="2" stroke-linecap="round"
-                            stroke-linejoin="round" />
-                        <path d="M11.9955 16.7H12.0045" stroke="white" stroke-width="2" stroke-linecap="round"
-                            stroke-linejoin="round" />
-                        <path d="M8.29431 13.7H8.30329" stroke="white" stroke-width="2" stroke-linecap="round"
-                            stroke-linejoin="round" />
-                        <path d="M8.29431 16.7H8.30329" stroke="white" stroke-width="2" stroke-linecap="round"
-                            stroke-linejoin="round" />
+                        <path d="M9 22H15C20 22 22 20 22 15V9C22 4 20 2 15 2H9C4 2 2 4 2 9V15C2 20 4 22 9 22Z"
+                            stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
 
 
+
                 </span>
-                <span class="title">Classes</span>
+                <span class="title">Assignments </span>
             </div>
             <ul class="classesDropdown">
-                <li><a href="../manage-class/class.php">Manage Class</a></li>
-                <li><a href="../manage-class/manage_instructor_class.php">Assign Instructor Classes</a></li>
-                <li><a href="../manage-class/section.php">Manage Sections</a></li>
-                <li><a href="../manage-class/acad_year.php">Manage Academic Years</a></li>
-                <li><a href="../manage-class/semester.php">Manage Semesters</a></li>
+                <li><a href="../assigning/dep_sub.php">Assign Department to subjects</a></li>
+                <li>
+                    <a href="../assigning/user_dep.php">Assign User Deparment</a>
+                </li>
+                <li><a href="../assigning/class_section.php">Assign Class to a Section</a></li>
+                <li><a href="../assigning/class_department.php">Assign Class to a Department</a></li>
+                <li><a href="../assigning/class_acad_sem.php">Assign Advisory Class</a></li>
+                <li><a href="../assigning/class_teacher.php">Assign Teacher to Class</a></li>
+                <li><a href="../assigning/add_subject_student.php">Assign Student to a subject</a></li>
+
+
             </ul>
         </li>
         <li id="subject" onclick="showSubjectDropdown()">
             <div style="display: flex; gap: 8px; align-items: center;">
                 <span class="icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"
                         xmlns="http://www.w3.org/2000/svg">
-                        <path
-                            d="M22 4.66994V16.74C22 17.7 21.22 18.5999 20.26 18.7199L19.93 18.76C17.75 19.05 14.39 20.1599 12.47 21.2199C12.21 21.3699 11.78 21.3699 11.51 21.2199L11.47 21.2C9.54997 20.15 6.20003 19.05 4.03003 18.76L3.73999 18.7199C2.77999 18.5999 2 17.7 2 16.74V4.65993C2 3.46993 2.96997 2.56994 4.15997 2.66994C6.25997 2.83994 9.43997 3.89997 11.22 5.00997L11.47 5.15993C11.76 5.33994 12.24 5.33994 12.53 5.15993L12.7 5.04995C13.33 4.65995 14.13 4.26994 15 3.91994V7.99996L17 6.66994L19 7.99996V2.77999C19.27 2.72999 19.53 2.69995 19.77 2.67995H19.83C21.02 2.57995 22 3.46994 22 4.66994Z"
-                            stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                        <path d="M12 5.48999V20.49" stroke="white" stroke-width="1.5" stroke-linecap="round"
-                            stroke-linejoin="round" />
-                        <path d="M19 2.78003V8L17 6.66998L15 8V3.91998C16.31 3.39998 17.77 2.98003 19 2.78003Z"
-                            stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                    </svg>
-
-
-
-
-                </span>
-                <span class="title">Subjects</span>
-            </div>
-            <ul class="subjectDropdown">
-                <li><a href="../subject/subject.php">Manage Subjects</a></li>
-                <li><a href="../subject/dep_sub.php">Assign Department to subjects</a></li>
-                <li><a href="../subject/add_subject_student.php">Assign Student to a subject</a></li>
-            </ul>
-        </li>
-
-        <li id="question">
-            <a href="../evaluation/question.php"><span class="icon"><svg width="24" height="24" viewBox="0 0 24 24"
-                        fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path
-                            d="M17 18.4301H13L8.54999 21.39C7.88999 21.83 7 21.3601 7 20.5601V18.4301C4 18.4301 2 16.4301 2 13.4301V7.42999C2 4.42999 4 2.42999 7 2.42999H17C20 2.42999 22 4.42999 22 7.42999V13.4301C22 16.4301 20 18.4301 17 18.4301Z"
-                            stroke="white" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round"
-                            stroke-linejoin="round" />
-                        <path
-                            d="M12.0001 11.36V11.15C12.0001 10.47 12.4201 10.11 12.8401 9.82001C13.2501 9.54001 13.66 9.18002 13.66 8.52002C13.66 7.60002 12.9201 6.85999 12.0001 6.85999C11.0801 6.85999 10.3401 7.60002 10.3401 8.52002"
-                            stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                        <path d="M11.9955 13.75H12.0045" stroke="white" stroke-width="1.5" stroke-linecap="round"
-                            stroke-linejoin="round" />
-                    </svg>
-
-
-                </span><span class="title">Question</span></a>
-        </li>
-        <li id="rate">
-            <a href="../evaluation/rate.php"><span class="icon"><svg width="24" height="24" viewBox="0 0 24 24"
-                        fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path
-                            d="M15.39 5.21L16.7999 8.02999C16.9899 8.41999 17.4999 8.78999 17.9299 8.86999L20.48 9.28999C22.11 9.55999 22.49 10.74 21.32 11.92L19.3299 13.91C18.9999 14.24 18.81 14.89 18.92 15.36L19.4899 17.82C19.9399 19.76 18.9 20.52 17.19 19.5L14.7999 18.08C14.3699 17.82 13.65 17.82 13.22 18.08L10.8299 19.5C9.11994 20.51 8.07995 19.76 8.52995 17.82L9.09996 15.36C9.20996 14.9 9.01995 14.25 8.68995 13.91L6.69996 11.92C5.52996 10.75 5.90996 9.56999 7.53996 9.28999L10.0899 8.86999C10.5199 8.79999 11.03 8.41999 11.22 8.02999L12.63 5.21C13.38 3.68 14.62 3.68 15.39 5.21Z"
-                            stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                        <path d="M8 5H2" stroke="white" stroke-width="1.5" stroke-linecap="round"
-                            stroke-linejoin="round" />
-                        <path d="M5 19H2" stroke="white" stroke-width="1.5" stroke-linecap="round"
-                            stroke-linejoin="round" />
-                        <path d="M3 12H2" stroke="white" stroke-width="1.5" stroke-linecap="round"
-                            stroke-linejoin="round" />
-                    </svg>
-
-
-                </span><span class="title">Rate</span></a>
-        </li>
-        <li id="evaluation">
-            <a href="../evaluation/eval_result.php"><span class="icon"><svg width="24" height="24" viewBox="0 0 24 24"
-                        fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path
                             d="M4.26001 11.0199V15.9899C4.26001 17.8099 4.26001 17.8099 5.98001 18.9699L10.71 21.6999C11.42 22.1099 12.58 22.1099 13.29 21.6999L18.02 18.9699C19.74 17.8099 19.74 17.8099 19.74 15.9899V11.0199C19.74 9.19994 19.74 9.19994 18.02 8.03994L13.29 5.30994C12.58 4.89994 11.42 4.89994 10.71 5.30994L5.98001 8.03994C4.26001 9.19994 4.26001 9.19994 4.26001 11.0199Z"
                             stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
@@ -229,8 +175,36 @@
                             stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
 
-                </span><span class="title">Evaluation</span></a>
+
+
+
+                </span>
+                <span class="title">Evaluation</span>
+            </div>
+            <ul class="subjectDropdown">
+                <li id="evaluation">
+                    <a href="../evaluation/eval_result.php">
+
+                        Evaluation Results</a>
+                </li>
+                <li id="question">
+                    <a href="../evaluation/question.php">
+
+
+                        Questions</a>
+                </li>
+                <li id="rate">
+                    <a href="../evaluation/rate.php">
+
+
+                        Rates</a>
+                </li>
+
+            </ul>
         </li>
+
+
+
     </ul>
     </a>
 </aside>

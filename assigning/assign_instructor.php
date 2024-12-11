@@ -31,6 +31,6 @@ VALUES (:advisory_class_id, :teacher_type, :sub_id, :user_id)
     ]);
 
     echo "
-<script>alert('Teacher successfully assigned to the advisory class!'); window.location.href = 'manage_instructor_class.php';</script>";
+<script>alert('Teacher successfully assigned to the advisory class!'); window.location.href = 'class_teacher.php';</script>";
 }
 ?>

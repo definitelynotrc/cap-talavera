@@ -264,14 +264,11 @@ $studentId = $user_id;
                 <div style="margin-bottom: 20px; width: 10%;">
                     <label for="semesterFilter" style="font-weight: bold;">Filter by Semester:</label>
                     <select id="semesterFilter" name="semester" style="padding: 5px; margin-left: 10px;">
-                        <option value=""> Semesters</option>
-                        <?php while ($row = $semesters->fetch_assoc()):
-                            $semesterFilter = null; ?>
-
-                            <option value="<?php echo htmlspecialchars($row['sem_id']); ?>" <?php echo ($row['sem_id'] == $semesterFilter) ? 'selected' : ''; ?>>
+                        <option value="">Semesters</option>
+                        <?php while ($row = $semesters->fetch_assoc()): ?>
+                            <option value="<?php echo htmlspecialchars($row['sem_id']); ?>" <?php echo isset($_GET['semester']) && $_GET['semester'] == $row['sem_id'] ? 'selected' : ''; ?>>
                                 <?php echo htmlspecialchars($row['semesters']); ?>
                             </option>
-
                         <?php endwhile; ?>
                     </select>
                 </div>
@@ -306,7 +303,8 @@ JOIN advisory_class ac ON uc.advisory_class_id = ac.advisory_class_id
 JOIN class_teacher ct ON ac.advisory_class_id = ct.advisory_class_id
 JOIN subject s ON ct.sub_id = s.sub_id
 JOIN users u ON ct.user_id = u.user_id
-JOIN class c ON ac.class_id = c.class_id
+JOIN class_dep cd ON ac.class_dep_id = cd.class_dep_id
+JOIN class c ON cd.class_id = c.class_id
 JOIN semester sem ON ac.sem_id = sem.sem_id
 JOIN evaluation e ON e.class_teacher_id = ct.class_teacher_id AND e.user_id = uc.user_id
 WHERE uc.user_id = ?

@@ -83,52 +83,65 @@ if (isset($_GET['ay_id'])) {
 }
 
 
-// Include the PDO connection
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['year_start']) && isset($_POST['year_end'])) {
+        $yearStart = $_POST['year_start'];
+        $yearEnd = $_POST['year_end'];
+        $isActive = isset($_POST['isActive']) ? 1 : 0; // Check if 'isActive' is checked
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['year_start'])) {
-    $yearStart = $_POST['year_start'];
-    $isActive = isset($_POST['isActive']) ? 1 : 0; // Check if 'isActive' is checked
+        // Get the current year
+        $currentYear = date('Y');
 
-    // Prepare the SQL statement using PDO
-    $sql = "INSERT INTO acad_year (year_start, isActive) VALUES (:year_start, :isActive)";
-    $stmt = $pdo->prepare($sql);
+        // Validate year range for both year_start and year_end
+        if ($yearStart < ($currentYear - 1) || $yearStart > ($currentYear + 1)) {
+            echo 'Year start is out of range. It should be between ' . ($currentYear - 1) . ' and ' . ($currentYear + 1);
+            exit;
+        }
 
-    // Bind the parameters to the prepared statement
-    $stmt->bindParam(':year_start', $yearStart, PDO::PARAM_STR);
-    $stmt->bindParam(':isActive', $isActive, PDO::PARAM_INT);
+        if ($yearEnd < ($currentYear - 1) || $yearEnd > ($currentYear + 1)) {
+            echo 'Year end is out of range. It should be between ' . ($currentYear - 1) . ' and ' . ($currentYear + 1);
+            exit;
+        }
 
-    // Execute the query
-    if ($stmt->execute()) {
-        echo 'Success';  // Optionally, send a success response
-    } else {
-        echo 'Failed';  // Optionally, handle failure
+        // Check if ay_id is set for an update
+        if (isset($_POST['ay_id'])) {
+            $ayId = $_POST['ay_id'];
+
+            $sql = "UPDATE acad_year SET year_start = :year_start, year_end = :year_end, isActive = :isActive WHERE ay_id = :ay_id";
+            $stmt = $pdo->prepare($sql);
+            $stmt->bindParam(':ay_id', $ayId, PDO::PARAM_INT);
+        } else {
+            // If ay_id is not set, insert as a new record
+            $sql = "INSERT INTO acad_year (year_start, year_end, isActive) VALUES (:year_start, :year_end, :isActive)";
+            $stmt = $pdo->prepare($sql);
+        }
+
+        $stmt->bindParam(':year_start', $yearStart, PDO::PARAM_INT);
+        $stmt->bindParam(':year_end', $yearEnd, PDO::PARAM_INT);
+        $stmt->bindParam(':isActive', $isActive, PDO::PARAM_INT);
+
+        if ($stmt->execute()) {
+            header("Location: acad_year.php");
+        } else {
+            echo 'Failed';
+        }
     }
 }
+$currentYear = date('Y');
 
+// Create SQL query to update inactive academic years
+$sql = "UPDATE acad_year SET isActive = 0 WHERE year_end < :currentYear";
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ay_id'])) {
-    $ayId = $_POST['ay_id'];
-    $yearStart = $_POST['year_start'];
-    $isActive = isset($_POST['isActive']) ? 1 : 0; // Check if 'isActive' is checked
+// Prepare the SQL statement
+$stmt = $pdo->prepare($sql);
 
-    // Prepare the SQL statement using PDO
-    $sql = "UPDATE acad_year SET year_start = :year_start, isActive = :isActive WHERE ay_id = :ay_id";
-    $stmt = $pdo->prepare($sql);
+// Bind the current year parameter
+$stmt->bindParam(':currentYear', $currentYear, PDO::PARAM_INT);
 
-    // Bind the parameters to the prepared statement
-    $stmt->bindParam(':year_start', $yearStart, PDO::PARAM_STR);
-    $stmt->bindParam(':isActive', $isActive, PDO::PARAM_INT);
-    $stmt->bindParam(':ay_id', $ayId, PDO::PARAM_INT);
-
-    // Execute the query
-    if ($stmt->execute()) {
-        echo 'Success';  // Optionally, send a success response
-        header("Location: acad_year.php");
-    } else {
-        echo 'Failed';  // Optionally, handle failure
-    }
-}
+// Try executing the query and check if it worked
+$stmt->execute();
+// Check how many rows were updated
 
 
 ?>
@@ -310,7 +323,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ay_id'])) {
                     class="btn view-archived-btn">
                     <?php echo isset($_GET['archived']) && $_GET['archived'] == 'true' ? 'View Actives' : 'View Archived '; ?>
                 </a>
-                <button id="addBtn" style=" background-color: none;">
+                <button id="addAcademicYearBtn" style=" background-color: none;">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M8 12H16" stroke="#292D32" stroke-width="1.5" stroke-linecap="round"
                             stroke-linejoin="round" />
@@ -323,7 +336,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ay_id'])) {
 
             </div>
 
-            <!-- Academic Year List -->
+
             <h2>Academic Year List</h2>
             <table class="table table-bordered">
                 <thead>
@@ -337,13 +350,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ay_id'])) {
                     <?php if (!empty($academicYears)): ?>
                         <?php foreach ($academicYears as $acadYear): ?>
                             <tr>
-                                <td><?php echo htmlspecialchars($acadYear['year_start']); ?></td>
+                                <td><?php echo htmlspecialchars($acadYear['year_start'] . ' - ' . $acadYear['year_end']); ?>
+                                </td>
                                 <td><?php echo $acadYear['isActive'] == 1 ? 'Active' : 'Archived'; ?></td>
                                 <td>
                                     <!-- Edit Button -->
                                     <button type="button" class="btn edit-btn" data-ay-id="<?php echo $acadYear['ay_id']; ?>"
                                         data-year-start="<?php echo $acadYear['year_start']; ?>"
+                                        data-year-end="<?php echo $acadYear['year_end']; ?>"
                                         data-is-active="<?php echo $acadYear['isActive']; ?>">Edit</button>
+
 
 
                                     <a href="?archive=true&ay_id=<?php echo $acadYear['ay_id']; ?>"
@@ -359,7 +375,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ay_id'])) {
                 </tbody>
             </table>
 
-            <!-- Archived Academic Years Section -->
+
             <?php if (isset($_GET['archived']) && $_GET['archived'] == 'true'): ?>
                 <h2>Archived Academic Years</h2>
                 <table class="table table-bordered">
@@ -374,7 +390,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ay_id'])) {
                         <?php if (!empty($archivedAcademicYears)): ?>
                             <?php foreach ($archivedAcademicYears as $acadYear): ?>
                                 <tr>
-                                    <td><?php echo htmlspecialchars($acadYear['year_start']); ?></td>
+                                    <td><?php echo htmlspecialchars($acadYear['year_start'] . ' - ' . $acadYear['year_end']); ?>
+                                    </td>
                                     <td><?php echo $acadYear['isActive'] == 1 ? 'Active' : 'Archived'; ?></td>
                                     <td>
                                         <a href="?restore=true&ay_id=<?php echo $acadYear['ay_id']; ?>"
@@ -398,7 +415,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ay_id'])) {
             <form id="addAcademicYearForm" method="POST" action="acad_year.php">
                 <div class="form-group">
                     <label for="year_start">Academic Year Start:</label>
-                    <input type="text" name="year_start" id="year_start" required>
+                    <input type="number" name="year_start" id="year_start" required min="<?php echo date('Y') - 1; ?>"
+                        max="<?php echo date('Y') + 1; ?>">
+                </div>
+                <div class="form-group">
+                    <label for="year_end">Academic Year End:</label>
+                    <input type="number" name="year_end" id="year_end" required min="<?php echo date('Y') - 1; ?>"
+                        max="<?php echo date('Y') + 1; ?>">
                 </div>
                 <div class="form-group">
                     <label for="isActive">Is Active:</label>
@@ -414,8 +437,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ay_id'])) {
         <div class="newmodal-content">
             <span class="close">&times;</span>
             <form id="editAcademicYearForm" method="POST" action="acad_year.php">
-                <div class="form-group"> <label for="year_start">Academic Year Start:</label>
-                    <input type="text" name="year_start" id="edit_year_start" required>
+                <div class="form-group">
+                    <label for="year_start">Academic Year Start:</label>
+                    <input type="number" name="year_start" id="edit_year_start" required
+                        min="<?php echo date('Y') - 1; ?>" max="<?php echo date('Y') + 1; ?>">
+                </div>
+                <div class="form-group">
+                    <label for="year_end">Academic Year End:</label>
+                    <input type="number" name="year_end" id="edit_year_end" required min="<?php echo date('Y') - 1; ?>"
+                        max="<?php echo date('Y') + 1; ?>">
                 </div>
                 <input type="hidden" name="ay_id" id="edit_ay_id">
                 <div class="form-group">
@@ -433,41 +463,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ay_id'])) {
 
     <script>
 
-        // Get Add Modal and Button
-        const addModal = document.querySelector('#addAcademicYearModal');
-        const addBtn = document.querySelector('#addBtn');
-        const addClose = addModal.querySelector('.close');
-
-        // Open Add Modal
-        addBtn.addEventListener('click', () => {
-            const form = addModal.querySelector('form');
-            form.reset(); // Reset form fields
-            addModal.style.display = 'block'; // Show the modal
-        });
-
-        // Close Add Modal
-        addClose.addEventListener('click', () => {
-            addModal.style.display = 'none';
-        });
-
-        // Close modal when clicking outside
-        window.addEventListener('click', (e) => {
-            if (e.target === addModal) {
-                addModal.style.display = 'none';
-            }
-        });
-
         $(document).ready(function () {
             // When the Edit button is clicked
             $('.edit-btn').click(function () {
                 // Get the data attributes from the button
                 var ayId = $(this).data('ay-id');
                 var yearStart = $(this).data('year-start');
-                var isActive = $(this).data('is-active') == 1;  // Convert to boolean
+                var yearEnd = $(this).data('year-end');
+                var isActive = $(this).data('is-active') == 1;
 
                 // Fill the modal form with the current values
                 $('#edit_ay_id').val(ayId);  // Fill the hidden input with ay_id
                 $('#edit_year_start').val(yearStart);  // Fill the year_start input
+                $('#edit_year_end').val(yearEnd);  // Fill the year_end input
                 $('#edit_isActive').prop('checked', isActive);  // Set checkbox based on isActive
 
                 // Show the modal
@@ -479,7 +487,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ay_id'])) {
                 $('#editAcademicYearModal').hide();
             });
 
-            // Handle the form submission
+            // Handle the form submission for editing the academic year
             $('#editAcademicYearForm').submit(function (e) {
                 e.preventDefault(); // Prevent the form from submitting normally
 
@@ -492,28 +500,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ay_id'])) {
                     method: 'POST',
                     data: formData,
                     success: function (response) {
-                        // Handle success (you can show a success message or update the table dynamically)
                         alert('Academic year updated successfully!');
                         $('#editAcademicYearModal').hide();  // Hide the modal after success
+                        location.reload();
                     },
                     error: function () {
                         alert('Error updating academic year!');
                     }
                 });
             });
+
         });
+
+
         $(document).ready(function () {
-            // Show the modal when 'Add Academic Year' button is clicked (add button needs to be implemented on your page)
+            // Show the modal when 'Add Academic Year' button is clicked
             $('#addAcademicYearBtn').click(function () {
-                $('#addAcademicYearModal').show();
+                $('#addAcademicYearModal').show(); // Show the modal
             });
 
             // Close the modal when the 'X' button is clicked
             $('.close').click(function () {
-                $('#addAcademicYearModal').hide();
+                $('#addAcademicYearModal').hide(); // Hide the modal
             });
 
-            // Handle form submission with AJAX (optional)
+            // Handle form submission with AJAX for adding academic year
             $('#addAcademicYearForm').submit(function (e) {
                 e.preventDefault(); // Prevent the form from submitting normally
 
@@ -527,7 +538,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ay_id'])) {
                     success: function (response) {
                         // Handle success (you can show a success message or update the table dynamically)
                         alert('Academic year added successfully!');
-                        $('#addAcademicYearModal').hide();  // Hide the modal after success
+                        $('#addAcademicYearModal').hide();
+                        location.reload();
+                        // Optionally, update the academic year list or table here
                     },
                     error: function () {
                         alert('Error adding academic year!');
@@ -535,8 +548,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ay_id'])) {
                 });
             });
         });
-
-
 
 
 

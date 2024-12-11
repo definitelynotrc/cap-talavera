@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if ($insertStmt = $conn->prepare($insertQuery)) {
                         $insertStmt->bind_param("ii", $studentId, $advisoryClassId);
                         if ($insertStmt->execute()) {
-                            echo "<script>alert('Subject(s) assigned to student successfully!');</script>";
+
                         } else {
                             echo "<script>alert('Error assigning subject to student: " . $insertStmt->error . "');</script>";
                         }
