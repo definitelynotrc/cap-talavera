@@ -56,7 +56,7 @@ $result = $stmt->get_result();
 $advisoryClasses = [];
 while ($row = $result->fetch_assoc()) {
     $classKey = $row['advisory_class_id'];
-    $className = $row['department'] . '-' . $row['year_level'] . '' . $row['sections'] . ' - ' . $row['semesters'] . ' - SY: ' . $row['academic_year'];
+    $className = $row['department'] . '-' . $row['year_level'] . '' . $row['sections'];
     $advisoryClasses[$classKey]['name'] = $className;
     $advisoryClasses[$classKey]['instructors'][] = $row['instructor_name'];
 }

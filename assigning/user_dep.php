@@ -139,38 +139,80 @@ try {
         <?php include '../components/sidebar.php'; ?>
         <div class="main">
             <h1>Assign Department to Users</h1>
-
-            <form method="POST">
-                <div class="form-group">
-                    <label for="dep_id">Select Department</label>
-                    <select name="dep_id" id="dep_id" required>
-                        <option value="">-- Select Department --</option>
-                        <?php foreach ($departments as $department): ?>
-                            <option value="<?= htmlspecialchars($department['dep_id']) ?>">
-                                <?= htmlspecialchars($department['department']) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="user_ids">Select Users</label>
-                    <div id="user_ids">
-                        <?php foreach ($instructors as $instructor): ?>
-                            <label>
-                                <input type="checkbox" name="user_ids[]"
-                                    value="<?= htmlspecialchars($instructor['user_id']) ?>">
-                                <?= htmlspecialchars($instructor['fullname']) ?>
-                            </label>
-                            <br>
-                        <?php endforeach; ?>
+            <div>
+                <form method="POST">
+                    <div class="form-group">
+                        <label for="dep_id">Select Department</label>
+                        <select name="dep_id" id="dep_id" required>
+                            <option value="">-- Select Department --</option>
+                            <?php foreach ($departments as $department): ?>
+                                <option value="<?= htmlspecialchars($department['dep_id']) ?>">
+                                    <?= htmlspecialchars($department['department']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
-                </div>
+                    <div class="form-group">
+                        <label for="user_ids">Select Users</label>
+                        <div id="user_ids">
+                            <?php foreach ($instructors as $instructor): ?>
+                                <label>
+                                    <input type="checkbox" name="user_ids[]"
+                                        value="<?= htmlspecialchars($instructor['user_id']) ?>">
+                                    <?= htmlspecialchars($instructor['fullname']) ?>
+                                </label>
+                                <br>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
 
 
 
-                <button type="submit">Assign Department</button>
-            </form>
+                    <button type="submit">Assign Department</button>
+                </form>
+            </div>
+            <div>
+                <h2>User Departments</h2>
+                <?php
+                // Fetch user departments
+                $userDepQuery = "SELECT user_dep_id, CONCAT(fname, ' ', lname) AS fullname, department, users.role FROM user_dep
+JOIN users ON user_dep.user_id = users.user_id
+JOIN department ON user_dep.dep_id = department.dep_id
+WHERE user_dep.isActive = 1";
+                $userDepStmt = $conn->prepare($userDepQuery);
+                $userDepStmt->execute();
+                $userDeps = $userDepStmt->fetchAll(PDO::FETCH_ASSOC);
 
+
+                ?>
+                <table style="width: 100%; border-collapse: collapse; border: 1px solid #2A2185;">
+                    <thead style="background-color: #2A2185; color: white;">
+                        <tr>
+
+                            <th style="padding: 8px; text-align: left;">Name</th>
+                            <th style="padding: 8px; text-align: left;">Role</th>
+
+                            <th style="padding: 8px; text-align: left;">Department</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($userDeps as $userDep): ?>
+                            <tr>
+
+                                <td style="padding: 8px; border-bottom: 1px solid #2A2185;">
+                                    <?= htmlspecialchars($userDep['fullname']) ?>
+                                </td>
+                                <td style="padding: 8px; border-bottom: 1px solid #2A2185;">
+                                    <?= htmlspecialchars($userDep['role']) ?>
+                                </td>
+                                <td style="padding: 8px; border-bottom: 1px solid #2A2185;">
+                                    <?= htmlspecialchars($userDep['department']) ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+
+            </div>
         </div>
     </div>
 

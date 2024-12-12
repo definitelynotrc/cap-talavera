@@ -171,7 +171,7 @@ try {
 
         <?php include '../components/sidebar.php'; ?>
         <div class="main">
-            <h1>Assign Advisory Class </h1>
+            <h1>Create Term Class </h1>
             <div class="form-container">
                 <form method="POST" action="assign_advisory_class.php">
                     <div class="form1">

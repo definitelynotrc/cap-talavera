@@ -145,31 +145,70 @@ try {
 
             <h1>Assign Subject to Department</h1>
 
-            <form method="POST">
-                <label for="dep_id">Select Department</label>
-                <select name="dep_id" id="dep_id" required>
-                    <option value="">-- Select Department --</option>
-                    <?php foreach ($departments as $department): ?>
-                        <option value="<?= htmlspecialchars($department['dep_id']) ?>">
-                            <?= htmlspecialchars($department['department']) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
+            <div>
+                <form method="POST">
+                    <label for="dep_id">Select Department</label>
+                    <select name="dep_id" id="dep_id" required>
+                        <option value="">-- Select Department --</option>
+                        <?php foreach ($departments as $department): ?>
+                            <option value="<?= htmlspecialchars($department['dep_id']) ?>">
+                                <?= htmlspecialchars($department['department']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
 
-                <label for="sub_id">Select Subject</label>
-                <select name="sub_id" id="sub_id" required>
-                    <option value="">-- Select Subject --</option>
-                    <?php foreach ($subjects as $subject): ?>
-                        <option value="<?= htmlspecialchars($subject['sub_id']) ?>">
-                            <?= htmlspecialchars($subject['subjects']) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
+                    <label for="sub_id">Select Subject</label>
+                    <select name="sub_id" id="sub_id" required>
+                        <option value="">-- Select Subject --</option>
+                        <?php foreach ($subjects as $subject): ?>
+                            <option value="<?= htmlspecialchars($subject['sub_id']) ?>">
+                                <?= htmlspecialchars($subject['subjects']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
 
 
 
-                <button type="submit">Assign Subject to Department</button>
-            </form>
+                    <button type="submit">Assign Subject to Department</button>
+                </form>
+            </div>
+            <div>
+                <?php
+                $assignedSubjectsQuery = "SELECT * FROM dep_sub
+                JOIN department ON dep_sub.dep_id = department.dep_id
+                JOIN subject ON dep_sub.sub_id = subject.sub_id
+                ";
+                $assignedSubjectsStmt = $conn->prepare($assignedSubjectsQuery);
+                $assignedSubjectsStmt->execute();
+                $assignedSubjects = $assignedSubjectsStmt->fetchAll(PDO::FETCH_ASSOC);
+
+
+                ?>
+                <h2>Assigned Subjects</h2>
+
+                <table style="width: 100%; border-collapse: collapse; border: 1px solid #2A2185;">
+                    <thead style="background-color: #2A2185; color: white;">
+                        <tr>
+
+                            <th style="padding: 8px; text-align: left;">Subject</th>
+                            <th style="padding: 8px; text-align: left;">Department</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($assignedSubjects as $assignedSubject): ?>
+                            <tr>
+
+                                <td style="padding: 8px; border-bottom: 1px solid #2A2185;">
+                                    <?= htmlspecialchars($assignedSubject['subjects']) ?>
+                                </td>
+                                <td style="padding: 8px; border-bottom: 1px solid #2A2185;">
+                                    <?= htmlspecialchars($assignedSubject['department']) ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
     <script src="../js/sidebar.js"></script>
