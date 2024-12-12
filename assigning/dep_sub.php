@@ -20,11 +20,13 @@ try {
     $departmentsStmt->execute();
     $departments = $departmentsStmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Fetch subjects
-    $subjectsQuery = "SELECT sub_id, subjects FROM subject"; // Adjust query if necessary
-    $subjectsStmt = $conn->prepare($subjectsQuery);
-    $subjectsStmt->execute();
-    $subjects = $subjectsStmt->fetchAll(PDO::FETCH_ASSOC);
+    $subjectsQuery = "
+    SELECT sub_id, subjects 
+    FROM subject 
+    WHERE sub_id NOT IN (
+        SELECT sub_id 
+        FROM dep_sub
+    )";
 
 
     // Handle form submission to assign a subject to a department and semester

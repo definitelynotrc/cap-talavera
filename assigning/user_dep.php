@@ -37,25 +37,40 @@ try {
         $isActive = 1;
 
         if (!empty($user_ids)) {
-            // Prepare the insert query
-            $assignQuery = "INSERT INTO user_dep (user_id, dep_id, isActive, date_assigned) VALUES (:user_id, :dep_id, :isActive, :date_assigned)";
-            $assignStmt = $conn->prepare($assignQuery);
+            // Fetch existing user_ids in the user_dep table for the given dep_id
+            $existingQuery = "SELECT user_id FROM user_dep WHERE dep_id = :dep_id";
+            $existingStmt = $conn->prepare($existingQuery);
+            $existingStmt->execute([':dep_id' => $dep_id]);
+            $existingUserIds = $existingStmt->fetchAll(PDO::FETCH_COLUMN);
 
-            // Insert each user into the user_dep table
-            foreach ($user_ids as $user_id) {
-                $assignStmt->execute([
-                    ':user_id' => $user_id,
-                    ':dep_id' => $dep_id,
-                    ':isActive' => $isActive,
-                    ':date_assigned' => $date_assigned,
-                ]);
+            // Filter out existing user_ids
+            $newUserIds = array_diff($user_ids, $existingUserIds);
+
+            if (!empty($newUserIds)) {
+                // Prepare the insert query
+                $assignQuery = "INSERT INTO user_dep (user_id, dep_id, isActive, date_assigned) 
+                            VALUES (:user_id, :dep_id, :isActive, :date_assigned)";
+                $assignStmt = $conn->prepare($assignQuery);
+
+                // Insert only new user_ids
+                foreach ($newUserIds as $user_id) {
+                    $assignStmt->execute([
+                        ':user_id' => $user_id,
+                        ':dep_id' => $dep_id,
+                        ':isActive' => $isActive,
+                        ':date_assigned' => $date_assigned,
+                    ]);
+                }
+
+                echo "<script>alert('Departments assigned successfully!'); window.location.href = '';</script>";
+            } else {
+                echo "<script>alert('All selected users are already assigned to this department.'); window.location.href = '';</script>";
             }
-
-            echo "<script>alert('Departments assigned successfully!'); window.location.href = '';</script>";
         } else {
             echo "<script>alert('Please select at least one user.'); window.location.href = '';</script>";
         }
     }
+
 
 } catch (PDOException $e) {
     die("Connection failed: " . $e->getMessage());
