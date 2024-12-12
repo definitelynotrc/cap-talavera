@@ -143,56 +143,145 @@ while ($row = $result->fetch_assoc()) {
         <?php include '../components/sidebar.php'; ?>
         <div class="main">
             <h1>Assign Student to a class </h1>
+            <div>
+                <form action="assign_student.php" method="post"
+                    style="display: flex; flex-direction: column; width: 500px; padding: 20px; background-color: #f9f9f9; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
 
-            <form action="assign_student.php" method="post"
-                style="display: flex; flex-direction: column; width: 500px; padding: 20px; background-color: #f9f9f9; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
 
+                    <label for="student" style="font-size: 16px; margin-bottom: 8px;">Select Student:</label>
+                    <select id="student" name="student"
+                        style="padding: 8px; font-size: 14px; border-radius: 4px; border: 1px solid #ccc; margin-bottom: 16px;">
+                        <option value="">Select a Student</option>
+                        <?php
 
-                <label for="student" style="font-size: 16px; margin-bottom: 8px;">Select Student:</label>
-                <select id="student" name="student"
-                    style="padding: 8px; font-size: 14px; border-radius: 4px; border: 1px solid #ccc; margin-bottom: 16px;">
-                    <option value="">Select a Student</option>
-                    <?php
-
-                    if ($conn->connect_error) {
-                        die("Connection failed: " . $conn->connect_error);
-                    } else {
-                        echo "<!-- Database connected successfully -->";
-                    }
-
-                    // Debug: Check if the query executes
-                    $studentsQuery = "SELECT user_id, CONCAT(fname, ' ', lname) AS student_name FROM users WHERE role = 'Student'";
-                    $studentsResult = $conn->query($studentsQuery);
-
-                    if ($studentsResult) {
-                        while ($student = $studentsResult->fetch_assoc()) {
-                            echo "<option value='" . htmlspecialchars($student['user_id']) . "'>"
-                                . htmlspecialchars($student['student_name']) . "</option>";
+                        if ($conn->connect_error) {
+                            die("Connection failed: " . $conn->connect_error);
+                        } else {
+                            echo "<!-- Database connected successfully -->";
                         }
-                    } else {
-                        echo "<!-- Query Error: " . $conn->error . " -->";
-                    }
-                    ?>
-                </select>
+
+                        // Debug: Check if the query executes
+                        $studentsQuery = "SELECT user_id, CONCAT(fname, ' ', lname) AS student_name FROM users WHERE role = 'Student'";
+                        $studentsResult = $conn->query($studentsQuery);
+
+                        if ($studentsResult) {
+                            while ($student = $studentsResult->fetch_assoc()) {
+                                echo "<option value='" . htmlspecialchars($student['user_id']) . "'>"
+                                    . htmlspecialchars($student['student_name']) . "</option>";
+                            }
+                        } else {
+                            echo "<!-- Query Error: " . $conn->error . " -->";
+                        }
+                        ?>
+                    </select>
 
 
-                <label for="advisoryClasses">Select Advisory Class:</label>
-                <select name="advisory_class" id="advisoryClasses" style="width: 100%; padding: 10px; font-size: 14px;">
-                    <option value="">-- Select Advisory Class --</option>
-                    <?php foreach ($advisoryClasses as $classId => $classInfo): ?>
-                        <option value="<?= htmlspecialchars($classId) ?>">
-                            <?= htmlspecialchars($classInfo['name']) ?>
+                    <label for="advisoryClasses">Select Advisory Class:</label>
+                    <select name="advisory_class" id="advisoryClasses"
+                        style="width: 100%; padding: 10px; font-size: 14px;">
+                        <option value="">-- Select Advisory Class --</option>
+                        <?php foreach ($advisoryClasses as $classId => $classInfo): ?>
+                            <option value="<?= htmlspecialchars($classId) ?>">
+                                <?= htmlspecialchars($classInfo['name']) ?>
 
-                        </option>
-                    <?php endforeach; ?>
-                </select>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
 
-                <!-- Submit Button -->
-                <button type="submit"
-                    style="margin-top: 10px;  padding: 10px; font-size: 16px; background-color: #2A2185; color: white; border: none; border-radius: 4px; cursor: pointer; transition: background-color 0.3s;">
-                    Assign Class
-                </button>
-            </form>
+                    <!-- Submit Button -->
+                    <button type="submit"
+                        style="margin-top: 10px;  padding: 10px; font-size: 16px; background-color: #2A2185; color: white; border: none; border-radius: 4px; cursor: pointer; transition: background-color 0.3s;">
+                        Assign Class
+                    </button>
+                </form>
+            </div>
+            <div>
+                <?php
+
+                $studentClassQuery = "
+       SELECT 
+    s.fname AS student_fname,
+    s.lname AS student_lname,
+    department.department,
+    class.year_level,
+    section.sections,
+    semester.semesters,
+    acad_year.year_start,
+    acad_year.year_end,
+    GROUP_CONCAT(DISTINCT CONCAT(t.fname, ' ', t.lname) SEPARATOR ', ') AS instructor_names
+FROM user_class
+JOIN users s ON user_class.user_id = s.user_id
+JOIN advisory_class ON user_class.advisory_class_id = advisory_class.advisory_class_id
+JOIN class_dep ON advisory_class.class_dep_id = class_dep.class_dep_id
+JOIN class ON class_dep.class_id = class.class_id
+JOIN section ON class.section_id = section.section_id
+JOIN department ON class_dep.dep_id = department.dep_id
+JOIN semester ON advisory_class.sem_id = semester.sem_id
+JOIN acad_year ON advisory_class.ay_id = acad_year.ay_id
+JOIN class_teacher ON advisory_class.advisory_class_id = class_teacher.advisory_class_id
+JOIN users t ON class_teacher.user_id = t.user_id
+WHERE s.role = 'Student'
+GROUP BY 
+    s.user_id, 
+    department.department, 
+    class.year_level, 
+    section.sections, 
+    semester.semesters, 
+    acad_year.year_start, 
+    acad_year.year_end
+ORDER BY 
+    s.lname, 
+    s.fname, 
+    department.department, 
+    class.year_level, 
+    section.sections, 
+    semester.semesters, 
+    acad_year.year_start, 
+    acad_year.year_end;
+
+    ";
+
+                $stmt = $conn->prepare($studentClassQuery);
+                $stmt->execute();
+                $studentClassResult = $stmt->get_result();
+
+
+                ?>
+                <table style="width: 100%; border-collapse: collapse; border: 1px solid #2A2185;">
+                    <thead style="background-color: #2A2185; color: white;">
+                        <tr>
+                            <th style="padding: 8px; text-align: left;">Student Name</th>
+                            <th style="padding: 8px; text-align: left;">Department</th>
+                            <th style="padding: 8px; text-align: left;">Year Level</th>
+                            <th style="padding: 8px; text-align: left;">Section</th>
+                            <th style="padding: 8px; text-align: left;">Semester</th>
+                            <th style="padding: 8px; text-align: left;">Academic Year</th>
+
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        if ($studentClassResult) {
+                            while ($studentClass = $studentClassResult->fetch_assoc()) {
+                                echo "<tr>";
+                                echo ' <td style="padding: 8px;">' . htmlspecialchars($studentClass['student_fname']) . ' ' . htmlspecialchars($studentClass['student_lname']) . "</td>";
+                                echo ' <td style="padding: 8px;">' . htmlspecialchars($studentClass['department']) . "</td>";
+                                echo ' <td style="padding: 8px;">' . htmlspecialchars($studentClass['year_level']) . "</td>";
+                                echo ' <td style="padding: 8px;">' . htmlspecialchars($studentClass['sections']) . "</td>";
+                                echo ' <td style="padding: 8px;">' . htmlspecialchars($studentClass['semesters']) . "</td>";
+                                echo ' <td style="padding: 8px;">' . htmlspecialchars($studentClass['year_start']) . ' - ' . htmlspecialchars($studentClass['year_end']) . "</td>";
+
+
+                                echo "</tr>";
+                            }
+                        } else {
+                            echo "<!-- Query Error: " . $conn->error . " -->";
+                        }
+                        ?>
+                    </tbody>
+
+                </table>
+            </div>
         </div>
     </div>
     <script src="../js/sidebar.js"></script>

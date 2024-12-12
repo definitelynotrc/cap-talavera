@@ -156,7 +156,7 @@
                 <li><a href="../assigning/class_department.php">Assign Class to a Department</a></li>
                 <li><a href="../assigning/class_acad_sem.php">Assign Advisory Class</a></li>
                 <li><a href="../assigning/class_teacher.php">Assign Teacher to Class</a></li>
-                <li><a href="../assigning/add_subject_student.php">Assign Student to a subject</a></li>
+                <li><a href="../assigning/add_subject_student.php">Assign Student to a Class</a></li>
 
 
             </ul>
