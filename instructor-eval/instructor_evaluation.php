@@ -295,10 +295,10 @@ if ($row = $result->fetch_assoc()) {
             if ($instructorId) {
 
                 $stmt = mysqli_prepare($conn, "SELECT u.fName, u.lName 
-FROM users u
-JOIN class_teacher ct ON u.user_id = ct.user_id
-WHERE ct.class_teacher_id = ?
-");
+                FROM users u
+                JOIN class_teacher ct ON u.user_id = ct.user_id
+                WHERE ct.class_teacher_id = ?
+                ");
                 mysqli_stmt_bind_param($stmt, 'i', $instructorId);
                 mysqli_stmt_execute($stmt);
                 $result = mysqli_stmt_get_result($stmt);
@@ -325,7 +325,11 @@ WHERE ct.class_teacher_id = ?
     JOIN class_teacher ct ON u.user_id = ct.user_id
     LEFT JOIN subject s ON ct.sub_id = s.sub_id
     JOIN user_dep ud ON u.user_id = ud.user_id
-    WHERE ud.dep_id = ? AND u.role = 'Instructor'
+    JOIN advisory_class ac ON ct.class_teacher_id = ac.advisory_class_id
+
+
+    WHERE ud.dep_id = ? AND u.role = 'Instructor' AND  ac.isActive = 1
+
     GROUP BY u.user_id, u.fName, u.lName";
 
 

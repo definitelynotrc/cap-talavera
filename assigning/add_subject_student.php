@@ -16,21 +16,21 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-
 $query = "
     SELECT 
         ac.advisory_class_id,
         cl.year_level,
         sec.sections,
         sem.semesters,
-       dep.department,
+        dep.department,
         CONCAT(ay.year_start, '-', ay.year_end) AS academic_year,
         CONCAT(u.fname, ' ', u.lname) AS instructor_name
     FROM 
         advisory_class ac
     JOIN 
         class_dep c ON ac.class_dep_id = c.class_dep_id
-        JOIN department dep ON c.dep_id = dep.dep_id
+    JOIN 
+        department dep ON c.dep_id = dep.dep_id
     JOIN 
         class cl ON c.class_id = cl.class_id
     JOIN 
@@ -43,6 +43,9 @@ $query = "
         class_teacher ct ON ac.advisory_class_id = ct.advisory_class_id
     JOIN 
         users u ON ct.user_id = u.user_id
+    WHERE 
+        ac.isActive = 1
+        AND ay.isActive = 1
     ORDER BY 
         ac.advisory_class_id, u.lname;
 ";
@@ -220,7 +223,7 @@ JOIN semester ON advisory_class.sem_id = semester.sem_id
 JOIN acad_year ON advisory_class.ay_id = acad_year.ay_id
 JOIN class_teacher ON advisory_class.advisory_class_id = class_teacher.advisory_class_id
 JOIN users t ON class_teacher.user_id = t.user_id
-WHERE s.role = 'Student'
+WHERE s.role = 'Student' AND user_class.isActive = 1
 GROUP BY 
     s.user_id, 
     department.department, 

@@ -197,7 +197,7 @@ try {
                         <option value="">-- Select Advisory Class --</option>
                         <?php foreach ($advisoryClasses as $class): ?>
                             <option value="<?= htmlspecialchars($class['advisory_class_id']) ?>">
-                                <?= htmlspecialchars($class['department'] . " - " . $class['year_level'] . "" . $class['sections'] . " - " . $class['year_start'] . " (" . $class['semesters'] . ")") ?>
+                                <?= htmlspecialchars($class['department'] . " - " . $class['year_level'] . "" . $class['sections'] . " - " . $class['year_start'] . " - " . $class['year_end'] . " (" . $class['semesters'] . ")") ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
@@ -259,13 +259,14 @@ try {
     INNER JOIN department ON class_dep.dep_id = department.dep_id  -- Join department to get department name
     INNER JOIN users ON class_teacher.user_id = users.user_id  -- Join user to get instructor details
     INNER JOIN subject ON class_teacher.sub_id = subject.sub_id  -- Join subject to get subject name
+    WHERE acad_year.isActive = 1  -- Only include rows where acad_year is active
 ";
-
 
             $classTeacherStmt = $conn->prepare($classTeacherQuery);
             $classTeacherStmt->execute();
             $classTeachers = $classTeacherStmt->fetchAll(PDO::FETCH_ASSOC);
             ?>
+
             <div>
                 <h1>Class Teachers</h1>
 

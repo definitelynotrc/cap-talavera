@@ -128,22 +128,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
-$currentYear = date('Y');
+// $currentYear = date('Y');
 
-$sql = "UPDATE acad_year SET isActive = 0 WHERE year_end < :currentYear";
-$stmt = $pdo->prepare($sql);
+// $sql = "UPDATE acad_year SET isActive = 0 WHERE year_end < :currentYear";
+// $stmt = $pdo->prepare($sql);
 
-$stmt->bindParam(':currentYear', $currentYear, PDO::PARAM_INT);
+// $stmt->bindParam(':currentYear', $currentYear, PDO::PARAM_INT);
 
-if ($stmt->execute()) {
-    $updateAdvisoryClassSql = "
-        UPDATE advisory_class 
-        SET isActive = 0 
-        WHERE ay_id IN (SELECT ay_id FROM acad_year WHERE isActive = 0)
-    ";
-    $updateStmt = $pdo->prepare($updateAdvisoryClassSql);
-    $updateStmt->execute();
-}
+// if ($stmt->execute()) {
+//     $updateAdvisoryClassSql = "
+//         UPDATE advisory_class 
+//         SET isActive = 0 
+//         WHERE ay_id IN (SELECT ay_id FROM acad_year WHERE isActive = 0)
+//     ";
+//     $updateStmt = $pdo->prepare($updateAdvisoryClassSql);
+//     $updateStmt->execute();
+// }
 
 
 
@@ -285,12 +285,25 @@ if ($stmt->execute()) {
         .view-archived-btn:hover {
             background-color: #1d175d;
         }
+
+        .end-btn {
+            background-color: #2A2185;
+            color: white;
+            padding: 10px 10px;
+            border-radius: 5px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .end-btn:hover {
+            background-color: #1d175d;
+        }
     </style>
 </head>
 
 <body>
     <nav class="topbar">
-
         <div class="toggle" onclick="toggleSidebar()">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M9 22H15C20 22 22 20 22 15V9C22 4 20 2 15 2H9C4 2 2 4 2 9V15C2 20 4 22 9 22Z" stroke="white"
@@ -327,17 +340,21 @@ if ($stmt->execute()) {
                     class="btn view-archived-btn">
                     <?php echo isset($_GET['archived']) && $_GET['archived'] == 'true' ? 'View Actives' : 'View Archived '; ?>
                 </a>
-                <button id="addAcademicYearBtn" style=" background-color: none;">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M8 12H16" stroke="#292D32" stroke-width="1.5" stroke-linecap="round"
-                            stroke-linejoin="round" />
-                        <path d="M12 16V8" stroke="#292D32" stroke-width="1.5" stroke-linecap="round"
-                            stroke-linejoin="round" />
-                        <path d="M9 22H15C20 22 22 20 22 15V9C22 4 20 2 15 2H9C4 2 2 4 2 9V15C2 20 4 22 9 22Z"
-                            stroke="#292D32" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                    </svg>
-                </button>
-
+                <div style="display: flex; gap: 10px;">
+                    <button id="addAcademicYearBtn" style="background-color: none;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M8 12H16" stroke="#292D32" stroke-width="1.5" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                            <path d="M12 16V8" stroke="#292D32" stroke-width="1.5" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                            <path d="M9 22H15C20 22 22 20 22 15V9C22 4 20 2 15 2H9C4 2 2 4 2 9V15C2 20 4 22 9 22Z"
+                                stroke="#292D32" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </button>
+                    <button id="endAcadYear" class="end-btn" style="background-color: none;">
+                        End School Year
+                    </button>
+                </div>
             </div>
 
 
@@ -413,6 +430,47 @@ if ($stmt->execute()) {
             <?php endif; ?>
         </div>
     </div>
+    <!-- End Academic Year Modal -->
+    <div id="endAcadYearModal" style="
+    display: none; 
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%; 
+    background: rgba(0, 0, 0, 0.5); 
+    z-index: 1000;">
+        <div style="
+        background: #fff; 
+        padding: 20px; 
+        margin: 10% auto; 
+        width: 50%; 
+        border-radius: 5px; 
+        text-align: center;">
+            <h4 style="margin-bottom: 20px;">End School Year</h4>
+            <p style="margin-bottom: 20px;">Are you sure you want to end the school year? This will deactivate all
+                previous records.</p>
+            <div>
+                <button id="confirmEndYear" style="
+                background-color: #dc3545; 
+                color: white; 
+                border: none; 
+                padding: 10px 20px; 
+                border-radius: 5px; 
+                cursor: pointer; 
+                margin: 0 10px;">Yes, End Year</button>
+                <button id="cancelEndYear" style="
+                background-color: #6c757d; 
+                color: white; 
+                border: none; 
+                padding: 10px 20px; 
+                border-radius: 5px; 
+                cursor: pointer; 
+                margin: 0 10px;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <div id="addAcademicYearModal" class="modal">
         <div class="newmodal-content" style="display: flex; flex-direction: column; gap: 20px;">
             <span class="close">&times;</span>
@@ -553,6 +611,35 @@ if ($stmt->execute()) {
             });
         });
 
+
+
+        $(document).ready(function () {
+            // Show the modal
+            $('#endAcadYear').on('click', function () {
+                $('#endAcadYearModal').fadeIn(); // Display the modal
+            });
+
+            // Handle confirm action
+            $('#confirmEndYear').on('click', function () {
+                $.ajax({
+                    url: '../reset-acadyear/end_acad_year.php', // Backend PHP file
+                    type: 'POST',
+                    success: function (response) {
+                        alert(response); // Notify the user
+                        location.reload(); // Reload the page to reflect changes
+                    },
+                    error: function () {
+                        alert('An error occurred while ending the school year.');
+                    }
+                });
+                $('#endAcadYearModal').fadeOut(); // Hide the modal
+            });
+
+            // Handle cancel action
+            $('#cancelEndYear').on('click', function () {
+                $('#endAcadYearModal').fadeOut(); // Close the modal
+            });
+        });
 
 
     </script>

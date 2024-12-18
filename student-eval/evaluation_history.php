@@ -253,11 +253,28 @@ $studentId = $user_id;
             <div class="custom-instructor-container">
                 <h1>Evaluation History</h1>
                 <?php
-                // Fetch distinct semesters for the dropdown
-                $semestersQuery = "SELECT DISTINCT semesters, sem_id FROM semester ORDER BY semesters ASC";
+
+                $semestersQuery = "
+    SELECT DISTINCT 
+        semester.sem_id, 
+        semester.semesters, 
+        acad_year.year_start, 
+        acad_year.year_end
+    FROM 
+        advisory_class
+    JOIN 
+        semester ON advisory_class.sem_id = semester.sem_id
+    JOIN 
+        user_class ON advisory_class.advisory_class_id = user_class.advisory_class_id
+    JOIN 
+        acad_year ON advisory_class.ay_id = acad_year.ay_id
+    ORDER BY 
+        semester.semesters ASC
+";
                 $semStmt = $conn->prepare($semestersQuery);
                 $semStmt->execute();
                 $semesters = $semStmt->get_result();
+
                 ?>
 
                 <!-- Semester Filter Dropdown -->
@@ -267,7 +284,9 @@ $studentId = $user_id;
                         <option value="">Semesters</option>
                         <?php while ($row = $semesters->fetch_assoc()): ?>
                             <option value="<?php echo htmlspecialchars($row['sem_id']); ?>" <?php echo isset($_GET['semester']) && $_GET['semester'] == $row['sem_id'] ? 'selected' : ''; ?>>
-                                <?php echo htmlspecialchars($row['semesters']); ?>
+                                <?php echo htmlspecialchars($row['semesters']); ?> -
+                                <?php echo htmlspecialchars($row['year_start']); ?> -
+                                <?php echo htmlspecialchars($row['year_end']); ?>
                             </option>
                         <?php endwhile; ?>
                     </select>

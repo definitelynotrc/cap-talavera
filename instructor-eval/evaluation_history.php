@@ -289,10 +289,21 @@ if ($row = $result->fetch_assoc()) {
         <div class="main">
             <?php
             // Fetch distinct semesters for the dropdown
-            $semestersQuery = "SELECT DISTINCT semesters, sem_id FROM semester ORDER BY semesters ASC";
+            $semestersQuery = "
+    SELECT DISTINCT 
+        s.semesters, 
+        s.sem_id, 
+        acad.year_end,
+        acad.year_start
+    FROM semester s
+    JOIN advisory_class ac ON s.sem_id = ac.sem_id
+    JOIN acad_year acad ON ac.ay_id = ac.ay_id
+    ORDER BY s.semesters ASC
+";
             $semStmt = $conn->prepare($semestersQuery);
             $semStmt->execute();
             $semesters = $semStmt->get_result();
+
             ?>
 
             <div style="margin-bottom: 20px; width: 10%;">
@@ -301,7 +312,7 @@ if ($row = $result->fetch_assoc()) {
                     <option value="">Semesters</option>
                     <?php while ($row = $semesters->fetch_assoc()): ?>
                         <option value="<?php echo htmlspecialchars($row['sem_id']); ?>" <?php echo isset($_GET['semester']) && $_GET['semester'] == $row['sem_id'] ? 'selected' : ''; ?>>
-                            <?php echo htmlspecialchars($row['semesters']); ?>
+                            <?php echo htmlspecialchars($row['semesters']); ?>-<?php echo htmlspecialchars($row['year_start']); ?>-<?php echo htmlspecialchars($row['year_end']); ?>
                         </option>
                     <?php endwhile; ?>
                 </select>

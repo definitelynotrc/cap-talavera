@@ -313,7 +313,7 @@ WHERE ct.class_teacher_id = ?
     JOIN users u ON ct.user_id = u.user_id
     JOIN class_dep cd ON ac.class_dep_id = cd.class_dep_id
     JOIN class c ON cd.class_id = c.class_id
-    WHERE uc.user_id = ? 
+    WHERE uc.user_id = ? AND uc.isActive = 1 
     GROUP BY s.sub_id, ct.class_teacher_id
     ORDER BY s.subjects;
 ";
